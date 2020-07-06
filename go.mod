@@ -10,6 +10,6 @@ require (
 	github.com/go-gl/glfw v0.0.0-20200625191551-73d3c3675aa3 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
-	golang.org/x/image v0.0.0-20200618115811-c13761719519 // indirect
+	golang.org/x/image v0.0.0-20200618115811-c13761719519
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )

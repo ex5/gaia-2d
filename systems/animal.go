@@ -76,6 +76,7 @@ func (self *AnimalSpawningSystem) Update(dt float32) {
 			Drawable: texture,
 			Scale:    engo.Point{X: 1, Y: 1},
 		}
+		animal.RenderComponent.SetZIndex(10.0)
 
 		for _, system := range self.world.Systems() {
 			switch sys := system.(type) {
