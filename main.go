@@ -21,7 +21,7 @@ var (
 	worldHeight int = 800
 
 	assets = []string{
-		"textures/chick_24x24.png",
+		"textures/chick_32x32.png",
 		"tilemap/terrain-medium.tmx",
 	}
 
@@ -140,7 +140,7 @@ func (*myScene) Setup(u engo.Updater) {
 	// Basic systems and controls
 	world.AddSystem(&common.RenderSystem{})
 	common.SetBackground(color.White)
-	//world.AddSystem(&common.AnimationSystem{})
+	world.AddSystem(&common.AnimationSystem{})
 	world.AddSystem(&common.MouseSystem{})
 	kbs := common.NewKeyboardScroller(
 		scrollSpeed,
@@ -150,7 +150,7 @@ func (*myScene) Setup(u engo.Updater) {
 	world.AddSystem(&common.EdgeScroller{scrollSpeed, 20})
 	world.AddSystem(&common.MouseZoomer{-0.125})
 
-	engo.Input.RegisterButton("AddAnimal", engo.KeyF1)
+	engo.Input.RegisterButton("AddEntity", engo.KeyF1)
 
 	// World
 	InitWorld(u)
@@ -159,7 +159,7 @@ func (*myScene) Setup(u engo.Updater) {
 	InitHUD(u)
 
 	// Creatures
-	world.AddSystem(&systems.AnimalSpawningSystem{})
+	world.AddSystem(&systems.EntitySpawningSystem{})
 }
 
 func main() {
