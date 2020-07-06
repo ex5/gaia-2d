@@ -36,22 +36,10 @@ type System interface {
 type EntitySpawningSystem struct {
 	world        *ecs.World
 	mouseTracker EntityMouseTracker
+	entityActions []*common.Animation
 }
 
-func CreateEntity(point engo.Point, spriteSheet *common.Spritesheet) *Entity {
-	WalkRightAction := &common.Animation{Name: "walk_right", Frames: []int{4, 4, 0, 1, 2, 3, 4, 4, 4}, Loop: true}
-	WalkLeftAction := &common.Animation{Name: "walk_left", Frames: []int{9, 9, 10, 11, 12, 13, 9, 9}, Loop: true}
-	WalkDownAction := &common.Animation{Name: "walk_down", Frames: []int{14, 15, 16, 17, 18, 19, 20}, Loop: true}
-	WalkUpAction := &common.Animation{Name: "walk_up", Frames: []int{21, 22, 23, 24, 25, 26, 27}, Loop: true}
-	FeedAction := &common.Animation{Name: "feed", Frames: []int{4, 4, 5, 6, 7, 8, 9, 9}}
-	actions := []*common.Animation{
-		WalkUpAction,
-		WalkDownAction,
-		WalkRightAction,
-		WalkLeftAction,
-		FeedAction,
-	}
-
+func (self *EntitySpawningSystem) CreateEntity(point engo.Point, spriteSheet *common.Spritesheet) *Entity {
 	entity := &Entity{BasicEntity: ecs.NewBasic()}
 
 	entity.SpaceComponent = common.SpaceComponent{
@@ -66,8 +54,8 @@ func CreateEntity(point engo.Point, spriteSheet *common.Spritesheet) *Entity {
 	entity.RenderComponent.SetZIndex(10.0)
 	entity.AnimationComponent = common.NewAnimationComponent(spriteSheet.Drawables(), 0.25)
 
-	entity.AnimationComponent.AddAnimations(actions)
-	entity.AnimationComponent.AddDefaultAnimation(FeedAction)
+	entity.AnimationComponent.AddAnimations(self.entityActions)
+	entity.AnimationComponent.AddDefaultAnimation(self.entityActions[0])
 
 	return entity
 }
@@ -80,6 +68,14 @@ func (self *EntitySpawningSystem) New(w *ecs.World) {
 
 	self.mouseTracker.BasicEntity = ecs.NewBasic()
 	self.mouseTracker.MouseComponent = common.MouseComponent{Track: true}
+
+	self.entityActions = []*common.Animation{
+		&common.Animation{Name: "feed", Frames: []int{4, 4, 5, 6, 7, 8, 9, 9}},
+		&common.Animation{Name: "walk_right", Frames: []int{4, 4, 0, 1, 2, 3, 4, 4, 4}, Loop: true},
+		&common.Animation{Name: "walk_left", Frames: []int{9, 9, 10, 11, 12, 13, 9, 9}, Loop: true},
+		&common.Animation{Name: "walk_down", Frames: []int{14, 15, 16, 17, 18, 19, 20}, Loop: true},
+		&common.Animation{Name: "walk_up", Frames: []int{21, 22, 23, 24, 25, 26, 27}, Loop: true},
+	}
 
 	for _, system := range w.Systems() {
 		switch sys := system.(type) {
@@ -95,7 +91,7 @@ func (self *EntitySpawningSystem) Update(dt float32) {
 	if engo.Input.Button("AddEntity").JustPressed() {
 		fmt.Println("The gamer pressed F1")
 		spriteSheet := common.NewSpritesheetFromFile("textures/chick_32x32.png", 32, 32)
-		animal := CreateEntity(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, spriteSheet)
+		animal := self.CreateEntity(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, spriteSheet)
 
 		for _, system := range self.world.Systems() {
 			switch sys := system.(type) {
