@@ -11,7 +11,7 @@ import (
 	"image"
 	"image/color"
 	"math"
-	//"log"
+	"log"
 )
 
 var (
@@ -151,6 +151,7 @@ func (*myScene) Setup(u engo.Updater) {
 	world.AddSystem(&common.MouseZoomer{-0.125})
 
 	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
+	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
 
 	// World
 	InitWorld(u)
@@ -160,6 +161,16 @@ func (*myScene) Setup(u engo.Updater) {
 
 	// Creatures
 	world.AddSystem(&systems.CreatureSpawningSystem{})
+
+	// Controls
+	world.AddSystem(&systems.ControlsSystem{})
+}
+
+func (*myScene) Exit() {
+	log.Println("Exit event called; we can do whatever we want now")
+	// Here if you want you can prompt the user if they're sure they want to close
+	log.Println("Manually closing")
+	engo.Exit()
 }
 
 func main() {
@@ -168,6 +179,7 @@ func main() {
 		Width:          worldWidth,
 		Height:         worldHeight,
 		StandardInputs: true,
+		OverrideCloseAction: true,
 	}
 	engo.Run(opts, &myScene{})
 }
