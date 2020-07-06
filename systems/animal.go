@@ -5,13 +5,13 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 
-    //"log"
-    "fmt"
+	//"log"
+	"fmt"
 )
 
 type AnimalMouseTracker struct {
-    ecs.BasicEntity
-    common.MouseComponent
+	ecs.BasicEntity
+	common.MouseComponent
 }
 
 type Animal struct {
@@ -33,17 +33,17 @@ type System interface {
 }
 
 type AnimalSpawningSystem struct {
-    world *ecs.World
-    mouseTracker AnimalMouseTracker
+	world        *ecs.World
+	mouseTracker AnimalMouseTracker
 }
 
 // New is the initialisation of the System
 func (self *AnimalSpawningSystem) New(w *ecs.World) {
 	fmt.Println("AnimalSpawningSystem was added to the Scene")
 
-    self.world = w
+	self.world = w
 
-    self.mouseTracker.BasicEntity = ecs.NewBasic()
+	self.mouseTracker.BasicEntity = ecs.NewBasic()
 	self.mouseTracker.MouseComponent = common.MouseComponent{Track: true}
 
 	for _, system := range w.Systems() {
@@ -57,9 +57,9 @@ func (self *AnimalSpawningSystem) New(w *ecs.World) {
 // Update is ran every frame, with `dt` being the time
 // in seconds since the last frame
 func (self *AnimalSpawningSystem) Update(dt float32) {
-    if engo.Input.Button("AddAnimal").JustPressed()  {
+	if engo.Input.Button("AddAnimal").JustPressed() {
 		fmt.Println("The gamer pressed F1")
-        animal := Animal{BasicEntity: ecs.NewBasic()}
+		animal := Animal{BasicEntity: ecs.NewBasic()}
 
 		animal.SpaceComponent = common.SpaceComponent{
 			Position: engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY},
