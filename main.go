@@ -150,7 +150,7 @@ func (*myScene) Setup(u engo.Updater) {
 	world.AddSystem(&common.EdgeScroller{scrollSpeed, 20})
 	world.AddSystem(&common.MouseZoomer{-0.125})
 
-	engo.Input.RegisterButton("AddEntity", engo.KeyF1)
+	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
 
 	// World
 	InitWorld(u)
@@ -159,7 +159,7 @@ func (*myScene) Setup(u engo.Updater) {
 	InitHUD(u)
 
 	// Creatures
-	world.AddSystem(&systems.EntitySpawningSystem{})
+	world.AddSystem(&systems.CreatureSpawningSystem{})
 }
 
 func main() {

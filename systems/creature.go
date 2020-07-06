@@ -9,12 +9,12 @@ import (
 	"fmt"
 )
 
-type EntityMouseTracker struct {
+type CreatureMouseTracker struct {
 	ecs.BasicEntity
 	common.MouseComponent
 }
 
-type Entity struct {
+type Creature struct {
 	ecs.BasicEntity
 	common.AnimationComponent
 	common.RenderComponent
@@ -29,18 +29,18 @@ type System interface {
 	// in seconds since the last frame
 	Update(dt float32)
 
-	// Remove removes an Entity from the System
+	// Remove removes an Creature from the System
 	Remove(ecs.BasicEntity)
 }
 
-type EntitySpawningSystem struct {
+type CreatureSpawningSystem struct {
 	world        *ecs.World
-	mouseTracker EntityMouseTracker
+	mouseTracker CreatureMouseTracker
 	entityActions []*common.Animation
 }
 
-func (self *EntitySpawningSystem) CreateEntity(point engo.Point, spriteSheet *common.Spritesheet) *Entity {
-	entity := &Entity{BasicEntity: ecs.NewBasic()}
+func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSheet *common.Spritesheet) *Creature {
+	entity := &Creature{BasicEntity: ecs.NewBasic()}
 
 	entity.SpaceComponent = common.SpaceComponent{
 		Position: point,
@@ -61,8 +61,8 @@ func (self *EntitySpawningSystem) CreateEntity(point engo.Point, spriteSheet *co
 }
 
 // New is the initialisation of the System
-func (self *EntitySpawningSystem) New(w *ecs.World) {
-	fmt.Println("EntitySpawningSystem was added to the Scene")
+func (self *CreatureSpawningSystem) New(w *ecs.World) {
+	fmt.Println("CreatureSpawningSystem was added to the Scene")
 
 	self.world = w
 
@@ -87,11 +87,11 @@ func (self *EntitySpawningSystem) New(w *ecs.World) {
 
 // Update is ran every frame, with `dt` being the time
 // in seconds since the last frame
-func (self *EntitySpawningSystem) Update(dt float32) {
-	if engo.Input.Button("AddEntity").JustPressed() {
+func (self *CreatureSpawningSystem) Update(dt float32) {
+	if engo.Input.Button("AddCreature").JustPressed() {
 		fmt.Println("The gamer pressed F1")
 		spriteSheet := common.NewSpritesheetFromFile("textures/chick_32x32.png", 32, 32)
-		animal := self.CreateEntity(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, spriteSheet)
+		animal := self.CreateCreature(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, spriteSheet)
 
 		for _, system := range self.world.Systems() {
 			switch sys := system.(type) {
@@ -104,5 +104,5 @@ func (self *EntitySpawningSystem) Update(dt float32) {
 	}
 }
 
-// Remove is called whenever an Entity is removed from the World, in order to remove it from this sytem as well
-func (*EntitySpawningSystem) Remove(ecs.BasicEntity) {}
+// Remove is called whenever an Creature is removed from the World, in order to remove it from this sytem as well
+func (*CreatureSpawningSystem) Remove(ecs.BasicEntity) {}
