@@ -6,5 +6,6 @@ var (
 	PreloadList = []string{
 		"textures/chick_32x32.png",
 		"tilemap/terrain-medium.tmx",
+		"textures/stone_32x32.png",
 	}
 )

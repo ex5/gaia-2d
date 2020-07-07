@@ -42,7 +42,7 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	// Basic systems and controls
 	world.AddSystem(&common.RenderSystem{})
-	common.SetBackground(color.White)
+	world.AddSystem(&common.CollisionSystem{Solids: 1})
 	world.AddSystem(&common.AnimationSystem{})
 	world.AddSystem(&common.MouseSystem{})
 	kbs := common.NewKeyboardScroller(
@@ -53,7 +53,10 @@ func (self *myScene) Setup(u engo.Updater) {
 	world.AddSystem(&common.EdgeScroller{scrollSpeed, 20})
 	world.AddSystem(&common.MouseZoomer{-0.125})
 
+	common.SetBackground(color.White)
+
 	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
+	engo.Input.RegisterButton("AddObject", engo.KeyF2)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
 
 	// World
@@ -64,6 +67,9 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	// Creatures
 	world.AddSystem(&systems.CreatureSpawningSystem{})
+
+	// Solid inanimate Objects
+	world.AddSystem(&systems.ObjectSpawningSystem{})
 
 	// Controls
 	world.AddSystem(&systems.ControlsSystem{})

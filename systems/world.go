@@ -14,6 +14,7 @@ type Tile struct {
 	ecs.BasicEntity
 	common.RenderComponent
 	common.SpaceComponent
+	common.CollisionComponent
 }
 
 func InitWorld(u engo.Updater) {
@@ -59,6 +60,10 @@ func InitWorld(u engo.Updater) {
 		case *common.RenderSystem:
 			for _, v := range tiles {
 				sys.Add(&v.BasicEntity, &v.RenderComponent, &v.SpaceComponent)
+			}
+		case *common.CollisionSystem:
+			for _, v := range tiles {
+				sys.Add(&v.BasicEntity, &v.CollisionComponent, &v.SpaceComponent)
 			}
 		}
 	}
