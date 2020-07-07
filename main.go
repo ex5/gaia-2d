@@ -134,7 +134,7 @@ func InitHUD(u engo.Updater) {
 
 // Setup is called before the main loop starts. It allows you
 // to add entities and systems to your Scene.
-func (*myScene) Setup(u engo.Updater) {
+func (self *myScene) Setup(u engo.Updater) {
 	world, _ := u.(*ecs.World)
 
 	// Basic systems and controls
@@ -164,11 +164,22 @@ func (*myScene) Setup(u engo.Updater) {
 
 	// Controls
 	world.AddSystem(&systems.ControlsSystem{})
+
+	engo.Mailbox.Listen(systems.ControlMessageType, func(m engo.Message) {
+		log.Printf("%+v", m)
+		msg, ok := m.(systems.ControlMessage)
+		if !ok {
+			return
+		}
+		if msg.Action == "exit" {
+			self.Exit()
+		}
+	})
 }
 
 func (*myScene) Exit() {
 	log.Println("Exit event called; we can do whatever we want now")
-	// Here if you want you can prompt the user if they're sure they want to close
+	// TODO Here if you want you can prompt the user if they're sure they want to close
 	log.Println("Manually closing")
 	engo.Exit()
 }

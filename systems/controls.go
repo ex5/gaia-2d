@@ -6,13 +6,25 @@ import (
 	"log"
 )
 
+type ControlMessage struct {
+	Action string
+}
+
+const ControlMessageType string = "ControlMessage"
+
+func (ControlMessage) Type() string {
+  return ControlMessageType
+}
+
 type ControlsSystem struct {
 }
 
 func (*ControlsSystem) Update(dt float32) {
 	if engo.Input.Button("ExitToDesktop").JustPressed() {
-		log.Println("ExitToDesktop")
-		engo.Exit()
+		log.Println("ExitToDesktop pressed")
+		engo.Mailbox.Dispatch(ControlMessage{
+			Action: "exit",
+		})
 	}
 }
 
