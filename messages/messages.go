@@ -6,6 +6,7 @@ import (
 
 type ControlMessage struct {
 	Action string
+	Data string
 }
 
 const ControlMessageType string = "ControlMessage"

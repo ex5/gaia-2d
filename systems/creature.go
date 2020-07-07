@@ -4,8 +4,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
-	"gogame/assets"
-	"gogame/controls"
+	"gogame/messages"
 	"log"
 )
 
@@ -15,12 +14,8 @@ type CreatureMouseTracker struct {
 }
 
 type Creature struct {
-	ecs.BasicEntity
+	Object *Object
 	common.AnimationComponent
-	common.RenderComponent
-	common.SpaceComponent
-	common.CollisionComponent
-	common.MouseComponent
 }
 
 type CreatureSpawningSystem struct {
@@ -32,30 +27,28 @@ type CreatureSpawningSystem struct {
 
 func (self *Creature) Update(dt float32) {
 	//log.Printf("%+v %+v", dt, self.SpaceComponent)
-	self.SpaceComponent.Position.X += dt * 100
+	self.Object.SpaceComponent.Position.X += dt * 100
 }
 
-func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSheet *common.Spritesheet) *Creature {
-	entity := &Creature{BasicEntity: ecs.NewBasic()}
+func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSrc string) *Creature {
+	var entity *Creature
+	for _, system := range self.world.Systems() {
+		switch sys := system.(type) {
+		case *ObjectSpawningSystem:
+			entity = &Creature{Object: sys.CreateObject(point, spriteSrc, true)}
+		}
+	}
 
-	entity.SpaceComponent = common.SpaceComponent{
-		Position: point,
-		Width:    float32(assets.SpriteWidth),
-		Height:   float32(assets.SpriteHeight),
-	}
-	entity.RenderComponent = common.RenderComponent{
-		Drawable: spriteSheet.Cell(0),
-		Scale:    engo.Point{1, 1},
-	}
-	entity.RenderComponent.SetZIndex(10.0)
-	entity.CollisionComponent = common.CollisionComponent{
-		Main: 1,
-	}
-	entity.MouseComponent = common.MouseComponent{Track: false}
-	entity.AnimationComponent = common.NewAnimationComponent(spriteSheet.Drawables(), 0.25)
-
+	entity.AnimationComponent = common.NewAnimationComponent(entity.Object.Spritesheet.Drawables(), 0.25)
 	entity.AnimationComponent.AddAnimations(self.entityActions)
 	entity.AnimationComponent.AddDefaultAnimation(self.entityActions[0])
+
+	for _, system := range self.world.Systems() {
+		switch sys := system.(type) {
+		case *common.AnimationSystem:
+			sys.Add(&entity.Object.BasicEntity, &entity.AnimationComponent, &entity.Object.RenderComponent)
+		}
+	}
 
 	self.entities = append(self.entities, entity)
 
@@ -86,6 +79,18 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 		}
 	})
 
+	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
+		log.Printf("%+v", m)
+		msg, ok := m.(messages.ControlMessage)
+		if !ok {
+			return
+		}
+		if msg.Action == "add_creature" {
+			self.CreateCreature(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, msg.Data)
+
+		}
+	})
+
 	for _, system := range w.Systems() {
 		switch sys := system.(type) {
 		case *common.MouseSystem:
@@ -97,27 +102,6 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 // Update is ran every frame, with `dt` being the time
 // in seconds since the last frame
 func (self *CreatureSpawningSystem) Update(dt float32) {
-	if engo.Input.Button("AddCreature").JustPressed() {
-		log.Println("The gamer pressed F1")
-		spriteSheet := common.NewSpritesheetFromFile("textures/chick_32x32.png", assets.SpriteWidth, assets.SpriteHeight)
-		creature := self.CreateCreature(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, spriteSheet)
-
-		for _, system := range self.world.Systems() {
-			switch sys := system.(type) {
-			case *common.RenderSystem:
-				sys.Add(&creature.BasicEntity, &creature.RenderComponent, &creature.SpaceComponent)
-			case *common.AnimationSystem:
-				sys.Add(&creature.BasicEntity, &creature.AnimationComponent, &creature.RenderComponent)
-			case *common.CollisionSystem:
-				sys.Add(&creature.BasicEntity, &creature.CollisionComponent, &creature.SpaceComponent)
-			case *common.MouseSystem:
-				sys.Add(&creature.BasicEntity, &creature.MouseComponent, &creature.SpaceComponent, &creature.RenderComponent)
-			case *controls.ControlsSystem:
-				sys.Add(&creature.BasicEntity, &creature.MouseComponent)
-			}
-		}
-	}
-
 	//log.Printf("Entities: %+v", self.entities)
 	for _, entity := range self.entities {
 		//log.Printf("Entity: %d, %+v", i, entity)

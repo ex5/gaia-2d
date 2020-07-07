@@ -28,6 +28,20 @@ func (self *ControlsSystem) Update(dt float32) {
 			Action: "exit",
 		})
 	}
+	if engo.Input.Button("AddCreature").JustPressed() {
+		log.Println("The gamer pressed F1")
+		engo.Mailbox.Dispatch(messages.ControlMessage{
+			Action: "add_creature",
+			Data: "textures/chick_32x32.png",
+		})
+	}
+	if engo.Input.Button("AddObject").JustPressed() {
+		log.Println("The gamer pressed F2")
+		engo.Mailbox.Dispatch(messages.ControlMessage{
+			Action: "add_object",
+			Data: "textures/stone_32x32.png",
+		})
+	}
 
 	//log.Printf("Entities: %+v", self.entities)
 	for _, entity := range self.entities {
