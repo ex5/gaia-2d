@@ -4,9 +4,8 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
-
-	//"log"
-	"fmt"
+	"gogame/assets"
+	"log"
 )
 
 type CreatureMouseTracker struct {
@@ -44,8 +43,8 @@ func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSheet
 
 	entity.SpaceComponent = common.SpaceComponent{
 		Position: point,
-		Width:    32,
-		Height:   32,
+		Width:    float32(assets.SpriteWidth),
+		Height:   float32(assets.SpriteHeight),
 	}
 	entity.RenderComponent = common.RenderComponent{
 		Drawable: spriteSheet.Cell(0),
@@ -62,7 +61,7 @@ func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSheet
 
 // New is the initialisation of the System
 func (self *CreatureSpawningSystem) New(w *ecs.World) {
-	fmt.Println("CreatureSpawningSystem was added to the Scene")
+	log.Println("CreatureSpawningSystem was added to the Scene")
 
 	self.world = w
 
@@ -89,8 +88,8 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 // in seconds since the last frame
 func (self *CreatureSpawningSystem) Update(dt float32) {
 	if engo.Input.Button("AddCreature").JustPressed() {
-		fmt.Println("The gamer pressed F1")
-		spriteSheet := common.NewSpritesheetFromFile("textures/chick_32x32.png", 32, 32)
+		log.Println("The gamer pressed F1")
+		spriteSheet := common.NewSpritesheetFromFile("textures/chick_32x32.png", assets.SpriteWidth, assets.SpriteHeight)
 		animal := self.CreateCreature(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, spriteSheet)
 
 		for _, system := range self.world.Systems() {
