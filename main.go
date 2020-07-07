@@ -7,6 +7,8 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
+	"gogame/controls"
+	"gogame/messages"
 	"gogame/systems"
 	"golang.org/x/image/font/gofont/gosmallcaps"
 	"image/color"
@@ -72,11 +74,11 @@ func (self *myScene) Setup(u engo.Updater) {
 	world.AddSystem(&systems.ObjectSpawningSystem{})
 
 	// Controls
-	world.AddSystem(&systems.ControlsSystem{})
+	world.AddSystem(&controls.ControlsSystem{})
 
-	engo.Mailbox.Listen(systems.ControlMessageType, func(m engo.Message) {
+	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)
-		msg, ok := m.(systems.ControlMessage)
+		msg, ok := m.(messages.ControlMessage)
 		if !ok {
 			return
 		}

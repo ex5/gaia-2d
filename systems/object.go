@@ -5,6 +5,7 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
+	"gogame/controls"
 	"log"
 )
 
@@ -18,6 +19,7 @@ type Object struct {
 	common.RenderComponent
 	common.SpaceComponent
 	common.CollisionComponent
+	common.MouseComponent
 }
 
 type ObjectSpawningSystem struct {
@@ -44,6 +46,7 @@ func (self *ObjectSpawningSystem) CreateObject(point engo.Point, spriteSheet *co
 	entity.CollisionComponent = common.CollisionComponent{
 		Group: 1,
 	}
+	entity.MouseComponent = common.MouseComponent{Track: false}
 
 	self.entities = append(self.entities, entity)
 
@@ -81,6 +84,10 @@ func (self *ObjectSpawningSystem) Update(dt float32) {
 				sys.Add(&object.BasicEntity, &object.RenderComponent, &object.SpaceComponent)
 			case *common.CollisionSystem:
 				sys.Add(&object.BasicEntity, &object.CollisionComponent, &object.SpaceComponent)
+			case *common.MouseSystem:
+				sys.Add(&object.BasicEntity, &object.MouseComponent, &object.SpaceComponent, &object.RenderComponent)
+			case *controls.ControlsSystem:
+				sys.Add(&object.BasicEntity, &object.MouseComponent)
 			}
 		}
 	}

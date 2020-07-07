@@ -5,6 +5,7 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
+	"gogame/controls"
 	"log"
 )
 
@@ -19,18 +20,7 @@ type Creature struct {
 	common.RenderComponent
 	common.SpaceComponent
 	common.CollisionComponent
-}
-
-// System is an interface which implements an ECS-System. A System
-// should iterate over its Entities on `Update`, in any way
-// suitable for the current implementation.
-type System interface {
-	// Update is ran every frame, with `dt` being the time
-	// in seconds since the last frame
-	Update(dt float32)
-
-	// Remove removes an Creature from the System
-	Remove(ecs.BasicEntity)
+	common.MouseComponent
 }
 
 type CreatureSpawningSystem struct {
@@ -61,6 +51,7 @@ func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSheet
 	entity.CollisionComponent = common.CollisionComponent{
 		Main: 1,
 	}
+	entity.MouseComponent = common.MouseComponent{Track: false}
 	entity.AnimationComponent = common.NewAnimationComponent(spriteSheet.Drawables(), 0.25)
 
 	entity.AnimationComponent.AddAnimations(self.entityActions)
@@ -119,6 +110,10 @@ func (self *CreatureSpawningSystem) Update(dt float32) {
 				sys.Add(&creature.BasicEntity, &creature.AnimationComponent, &creature.RenderComponent)
 			case *common.CollisionSystem:
 				sys.Add(&creature.BasicEntity, &creature.CollisionComponent, &creature.SpaceComponent)
+			case *common.MouseSystem:
+				sys.Add(&creature.BasicEntity, &creature.MouseComponent, &creature.SpaceComponent, &creature.RenderComponent)
+			case *controls.ControlsSystem:
+				sys.Add(&creature.BasicEntity, &creature.MouseComponent)
 			}
 		}
 	}
