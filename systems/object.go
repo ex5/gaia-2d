@@ -87,6 +87,39 @@ func (self *ObjectSpawningSystem) CreateObject(point engo.Point, spriteSrc strin
 	return entity
 }
 
+func (self *ObjectSpawningSystem) HandleControlMessage(m engo.Message) {
+	log.Printf("%+v", m)
+	msg, ok := m.(messages.ControlMessage)
+	if !ok {
+		return
+	}
+	if msg.Action == "add_object" {
+		self.CreateObject(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, msg.Data, false)
+
+	}
+}
+
+func (self *ObjectSpawningSystem) HandleInteractMessage(m engo.Message) {
+	log.Printf("%+v", m)
+	msg, ok := m.(messages.InteractionMessage)
+	if !ok {
+		return
+	}
+	if msg.Action == "mouse_hover" {
+		// TODO
+		log.Printf("%+v", self.GetEntityByID(msg.BasicEntityID))
+	}
+}
+
+func (self *ObjectSpawningSystem) GetEntityByID(basicEntityID uint64) *Object {
+	for _, e := range self.entities {
+		if e.ID() == basicEntityID {
+			return e
+		}
+	}
+	return nil
+}
+
 // New is the initialisation of the System
 func (self *ObjectSpawningSystem) New(w *ecs.World) {
 	log.Println("ObjectSpawningSystem was added to the Scene")
@@ -97,24 +130,15 @@ func (self *ObjectSpawningSystem) New(w *ecs.World) {
 	self.mouseTracker.BasicEntity = ecs.NewBasic()
 	self.mouseTracker.MouseComponent = common.MouseComponent{Track: true}
 
-	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
-		log.Printf("%+v", m)
-		msg, ok := m.(messages.ControlMessage)
-		if !ok {
-			return
-		}
-		if msg.Action == "add_object" {
-			self.CreateObject(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, msg.Data, false)
-
-		}
-	})
-
 	for _, system := range w.Systems() {
 		switch sys := system.(type) {
 		case *common.MouseSystem:
 			sys.Add(&self.mouseTracker.BasicEntity, &self.mouseTracker.MouseComponent, nil, nil)
 		}
 	}
+
+	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
+	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 }
 
 // Update is ran every frame, with `dt` being the time

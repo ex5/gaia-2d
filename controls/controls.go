@@ -15,6 +15,7 @@ type controlEntity struct {
 
 type ControlsSystem struct {
 	entities []controlEntity
+	hoveredEntity *controlEntity
 }
 
 func (self *ControlsSystem) Add(basic *ecs.BasicEntity, mouse *common.MouseComponent) {
@@ -23,35 +24,41 @@ func (self *ControlsSystem) Add(basic *ecs.BasicEntity, mouse *common.MouseCompo
 
 func (self *ControlsSystem) Update(dt float32) {
 	if engo.Input.Button("ExitToDesktop").JustPressed() {
-		log.Println("ExitToDesktop pressed")
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "exit",
 		})
 	}
 	if engo.Input.Button("AddCreature").JustPressed() {
-		log.Println("The gamer pressed F1")
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "add_creature",
 			Data: "textures/chick_32x32.png",
 		})
 	}
 	if engo.Input.Button("AddObject").JustPressed() {
-		log.Println("The gamer pressed F2")
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "add_object",
 			Data: "textures/stone_32x32.png",
 		})
 	}
 
-	//log.Printf("Entities: %+v", self.entities)
+	var newHoveredEntity *controlEntity
 	for _, entity := range self.entities {
-		//log.Printf("Entity: %d, %+v", i, entity)
-		if entity.MouseComponent.Enter {
-			engo.SetCursor(engo.CursorHand)
-		} else if entity.MouseComponent.Leave {
-			engo.SetCursor(engo.CursorNone)
+		if entity.MouseComponent.Hovered {
+			newHoveredEntity = &entity
 		}
 	}
+	if newHoveredEntity == nil && self.hoveredEntity != nil {
+		log.Printf("Not hovering anything\n")
+		engo.SetCursor(engo.CursorNone)
+	} else if newHoveredEntity != nil && self.hoveredEntity == nil {
+		log.Printf("Hovering over an entity: %+v #%d\n", newHoveredEntity, newHoveredEntity.ID())
+		engo.Mailbox.Dispatch(messages.InteractionMessage{
+			Action: "mouse_hover",
+			BasicEntityID: newHoveredEntity.ID(),
+		})
+		engo.SetCursor(engo.CursorHand)
+	}
+	self.hoveredEntity = newHoveredEntity
 }
 
 

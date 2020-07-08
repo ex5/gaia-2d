@@ -75,7 +75,7 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 		_, isCollision := message.(common.CollisionMessage)
 
 		if isCollision {
-			log.Println("COLLISION")
+			//log.Println("COLLISION")
 		}
 	})
 
