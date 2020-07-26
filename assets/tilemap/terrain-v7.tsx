@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset name="terrain-v7" tilewidth="32" tileheight="32" tilecount="2048" columns="32">
+<tileset version="1.4" tiledversion="1.4.1" name="terrain-v7" tilewidth="32" tileheight="32" tilecount="2048" columns="32">
  <image source="terrain-v7.png" width="1024" height="2048"/>
  <terraintypes>
   <terrain name="Dirt_Tan" tile="97"/>
@@ -970,4 +970,14 @@
  <tile id="1433" terrain="10,19,19,10"/>
  <tile id="1435" terrain="19,12,12,19"/>
  <tile id="1436" terrain="12,19,19,12"/>
+ <tile id="1705">
+  <properties>
+   <property name="Anothertesttileprop" value="Value"/>
+  </properties>
+ </tile>
+ <tile id="1706">
+  <properties>
+   <property name="Test tile property" value="TestValue"/>
+  </properties>
+ </tile>
 </tileset>

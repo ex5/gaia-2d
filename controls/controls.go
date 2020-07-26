@@ -37,7 +37,7 @@ func (self *ControlsSystem) Update(dt float32) {
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "add_object",
-			Data: "textures/stone_32x32.png",
+			AtlasID: 1664,
 		})
 	}
 
@@ -50,11 +50,15 @@ func (self *ControlsSystem) Update(dt float32) {
 	if newHoveredEntity == nil && self.hoveredEntity != nil {
 		log.Printf("Not hovering anything\n")
 		engo.SetCursor(engo.CursorNone)
+		engo.Mailbox.Dispatch(messages.InteractionMessage{
+			Action: "mouse_hover",
+			BasicEntity: nil,
+		})
 	} else if newHoveredEntity != nil && self.hoveredEntity == nil {
 		log.Printf("Hovering over an entity: %+v #%d\n", newHoveredEntity, newHoveredEntity.ID())
 		engo.Mailbox.Dispatch(messages.InteractionMessage{
 			Action: "mouse_hover",
-			BasicEntityID: newHoveredEntity.ID(),
+			BasicEntity: newHoveredEntity.BasicEntity,
 		})
 		engo.SetCursor(engo.CursorHand)
 	}

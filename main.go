@@ -55,7 +55,7 @@ func (self *myScene) Setup(u engo.Updater) {
 	world.AddSystem(&common.EdgeScroller{scrollSpeed, 20})
 	world.AddSystem(&common.MouseZoomer{-0.125})
 
-	common.SetBackground(color.White)
+	common.SetBackground(color.Black)
 
 	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
 	engo.Input.RegisterButton("AddObject", engo.KeyF2)
@@ -66,6 +66,7 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	// HUD
 	systems.InitHUD(u)
+	world.AddSystem(&systems.HUDTextSystem{})
 
 	// Creatures
 	world.AddSystem(&systems.CreatureSpawningSystem{})

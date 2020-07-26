@@ -1,12 +1,14 @@
 package systems
 
 import (
+	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
 	"gogame/controls"
 	"gogame/messages"
+	"gogame/util"
 	"log"
 )
 
@@ -44,18 +46,32 @@ func (self *ObjectSpawningSystem) GetOrLoadSpritesheet(spriteSrc string) *common
 	return self.spritesheets[spriteSrc]
 }
 
-func (self *ObjectSpawningSystem) CreateObject(point engo.Point, spriteSrc string, collisionMain bool) *Object {
+func (self *ObjectSpawningSystem) CreateObjectFromSpriteSource(point engo.Point, spriteSrc string, collisionMain bool) *Object {
 	spriteSheet := self.GetOrLoadSpritesheet(spriteSrc)
 	entity := &Object{BasicEntity: ecs.NewBasic(), Spritesheet: spriteSheet}
+	entity.RenderComponent = common.RenderComponent{
+		Drawable: spriteSheet.Cell(0),
+		Scale:    engo.Point{1, 1},
+	}
 
+	return self.AddObjectEntity(point, entity, collisionMain)
+}
+
+func (self *ObjectSpawningSystem) CreateObjectFromTextureAtlas(point engo.Point, atlasID int, collisionMain bool) *Object {
+	entity := &Object{BasicEntity: ecs.NewBasic(), Spritesheet: assets.FullSpriteSheet}
+	entity.RenderComponent = common.RenderComponent{
+		Drawable: assets.FullSpriteSheet.Cell(atlasID),
+		Scale:    engo.Point{1, 1},
+	}
+
+	return self.AddObjectEntity(point, entity, collisionMain)
+}
+
+func (self *ObjectSpawningSystem) AddObjectEntity(point engo.Point, entity *Object, collisionMain bool) *Object {
 	entity.SpaceComponent = common.SpaceComponent{
 		Position: point,
 		Width:    float32(assets.SpriteWidth),
 		Height:   float32(assets.SpriteHeight),
-	}
-	entity.RenderComponent = common.RenderComponent{
-		Drawable: spriteSheet.Cell(0),
-		Scale:    engo.Point{1, 1},
 	}
 	entity.RenderComponent.SetZIndex(10.0)
 	if collisionMain {
@@ -94,8 +110,8 @@ func (self *ObjectSpawningSystem) HandleControlMessage(m engo.Message) {
 		return
 	}
 	if msg.Action == "add_object" {
-		self.CreateObject(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, msg.Data, false)
-
+		x, y := util.ToGridPosition(self.mouseTracker.MouseX, self.mouseTracker.MouseY)
+		self.CreateObjectFromTextureAtlas(engo.Point{x, y}, msg.AtlasID, false)
 	}
 }
 
@@ -105,9 +121,17 @@ func (self *ObjectSpawningSystem) HandleInteractMessage(m engo.Message) {
 	if !ok {
 		return
 	}
-	if msg.Action == "mouse_hover" {
-		// TODO
-		log.Printf("%+v", self.GetEntityByID(msg.BasicEntityID))
+	if msg.Action == "mouse_hover" && msg.BasicEntity != nil {
+		entity := self.GetEntityByID(msg.BasicEntity.ID())
+		log.Printf("%+v", entity)
+		if entity != nil {
+			engo.Mailbox.Dispatch(messages.HUDTextMessage{
+				Line1:          fmt.Sprintf("#%d", entity.ID()),
+				Line2:          fmt.Sprintf("sprite: %s", entity.Spritesheet),
+				Line3:          "line3",
+				Line4:          "line4",
+			})
+		}
 	}
 }
 

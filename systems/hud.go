@@ -5,8 +5,8 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
-	"image"
-	"image/color"
+	//"image"
+	//"image/color"
 )
 
 var (
@@ -20,6 +20,7 @@ type HUD struct {
 }
 
 func InitHUD(u engo.Updater) {
+	/*
 	world, _ := u.(*ecs.World)
 
 	hud := HUD{BasicEntity: ecs.NewBasic()}
@@ -48,4 +49,5 @@ func InitHUD(u engo.Updater) {
 			sys.Add(&hud.BasicEntity, &hud.RenderComponent, &hud.SpaceComponent)
 		}
 	}
+	*/
 }

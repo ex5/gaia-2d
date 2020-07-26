@@ -5,6 +5,7 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/messages"
+	"gogame/util"
 	"log"
 )
 
@@ -35,7 +36,7 @@ func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSrc s
 	for _, system := range self.world.Systems() {
 		switch sys := system.(type) {
 		case *ObjectSpawningSystem:
-			entity = &Creature{Object: sys.CreateObject(point, spriteSrc, true)}
+			entity = &Creature{Object: sys.CreateObjectFromSpriteSource(point, spriteSrc, true)}
 		}
 	}
 
@@ -86,7 +87,8 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 			return
 		}
 		if msg.Action == "add_creature" {
-			self.CreateCreature(engo.Point{self.mouseTracker.MouseX, self.mouseTracker.MouseY}, msg.Data)
+			x, y := util.ToGridPosition(self.mouseTracker.MouseX, self.mouseTracker.MouseY)
+			self.CreateCreature(engo.Point{x, y}, msg.Data)
 
 		}
 	})
