@@ -50,7 +50,7 @@ func InitWorld(u engo.Updater) {
 			}
 			tiles = append(tiles, tile)
 
-			// Add vegeration tile
+			// Add vegetation tile
 			if rand.Int() % 3 == 0 {
 				vtile := &Tile{BasicEntity: ecs.NewBasic()}
 				// TODO how to distinguish walkable terrain?
