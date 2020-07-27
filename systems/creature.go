@@ -20,10 +20,10 @@ type Creature struct {
 }
 
 type CreatureSpawningSystem struct {
-	world           *ecs.World
-	mouseTracker    CreatureMouseTracker
-	entityActions   []*common.Animation
-	entities        []*Creature
+	world         *ecs.World
+	mouseTracker  CreatureMouseTracker
+	entityActions []*common.Animation
+	entities      []*Creature
 }
 
 func (self *Creature) Update(dt float32) {

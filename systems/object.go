@@ -27,10 +27,10 @@ type Object struct {
 }
 
 type ObjectSpawningSystem struct {
-	world           *ecs.World
-	mouseTracker    ObjectMouseTracker
-	spritesheets    map[string]*common.Spritesheet
-	entities        []*Object
+	world        *ecs.World
+	mouseTracker ObjectMouseTracker
+	spritesheets map[string]*common.Spritesheet
+	entities     []*Object
 }
 
 func (self *Object) Update(dt float32) {}
@@ -126,10 +126,10 @@ func (self *ObjectSpawningSystem) HandleInteractMessage(m engo.Message) {
 		log.Printf("Objects: %+v", entity)
 		if entity != nil {
 			engo.Mailbox.Dispatch(messages.HUDTextMessage{
-				Line1:          fmt.Sprintf("#%d", entity.ID()),
-				Line2:          fmt.Sprintf("sprite: %s", entity.Spritesheet),
-				Line3:          "<Object>",
-				Line4:          "",
+				Line1: fmt.Sprintf("#%d", entity.ID()),
+				Line2: fmt.Sprintf("sprite: %s", entity.Spritesheet),
+				Line3: "<Object>",
+				Line4: "",
 			})
 		}
 	}

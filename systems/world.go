@@ -30,8 +30,8 @@ type Tile struct {
 }
 
 type WorldTilesSystem struct {
-	world       *ecs.World
-	tiles       []*Tile  // TODO entities
+	world *ecs.World
+	tiles []*Tile // TODO entities
 }
 
 func (self *WorldTilesSystem) Add(spriteID int, position *engo.Point, layer float32) *Tile {
@@ -80,14 +80,14 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 func (self *WorldTilesSystem) Generate() {
 	mapSizeX, mapSizeY := 50, 50
 	ground := assets.GetObjectById(3) // grassland, default ground
-	for i := 0; i < mapSizeX; i ++ {
-		for j := 0; j < mapSizeY; j ++ {
+	for i := 0; i < mapSizeX; i++ {
+		for j := 0; j < mapSizeY; j++ {
 			position := util.ToPoint(i, j)
 			tile := self.Add(ground.SpriteID, position, 0)
 			tile.Object = ground
 
 			// Add a random vegetation tile
-			if rand.Int() % 3 == 0 {
+			if rand.Int()%3 == 0 {
 				plant := assets.GetRandomObjectOfType("plant")
 				vtile := self.Add(plant.SpriteID, position, 1)
 				vtile.AccessibleResource = &assets.AccessibleResource{plant.ResourceID, plant.Amount}
@@ -121,10 +121,10 @@ func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 		log.Printf("World: %+v", entity)
 		if entity != nil {
 			engo.Mailbox.Dispatch(messages.HUDTextMessage{
-				Line1:          fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-				Line2:          fmt.Sprintf("%v", entity.Object),
-				Line3:          fmt.Sprintf("%v", entity.AccessibleResource),
-				Line4:          fmt.Sprintf("%v", entity.Resource),
+				Line1: fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+				Line2: fmt.Sprintf("%v", entity.Object),
+				Line3: fmt.Sprintf("%v", entity.AccessibleResource),
+				Line4: fmt.Sprintf("%v", entity.Resource),
 			})
 		}
 	}
@@ -163,27 +163,26 @@ func (self *WorldTilesSystem) ToSavedTiles() *assets.SavedTiles {
 func (self *WorldTilesSystem) Save(filepath string) {
 	log.Println("Saving the world tiles")
 	f1, err := os.Create(filepath)
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 	enc := json.NewEncoder(f1)
-    err = enc.Encode(self.ToSavedTiles())
-    if err != nil {
-        panic(err)
-    }
+	err = enc.Encode(self.ToSavedTiles())
+	if err != nil {
+		panic(err)
+	}
 	f1.Close()
 }
 
 func (self *WorldTilesSystem) LoadFromSaveFile(filepath string) {
-	// TODO
-    f2, err := os.Open(filepath)
-    dec := json.NewDecoder(f2)
-    savedTiles := &assets.SavedTiles{}
-    err = dec.Decode(&savedTiles)
-    if err != nil {
-        panic(err)
-    }
-    f2.Close()
+	f2, err := os.Open(filepath)
+	dec := json.NewDecoder(f2)
+	savedTiles := &assets.SavedTiles{}
+	err = dec.Decode(&savedTiles)
+	if err != nil {
+		panic(err)
+	}
+	f2.Close()
 
 	for _, savedTile := range savedTiles.Tiles {
 		log.Println(savedTile, savedTile.ObjectID, savedTile.Position, savedTile.Layer)

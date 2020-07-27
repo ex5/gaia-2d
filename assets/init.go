@@ -14,38 +14,38 @@ import (
 
 // Description of a resource
 type Resource struct {
-	ID int              `json:"id"`
-	Type string         `json:"type"`
+	ID   int    `json:"id"`
+	Type string `json:"type"`
 }
 
 // Mutable resource, e.g. plant matter available at a specific tile
 type AccessibleResource struct {
-	ResourceID int      `json:"resource_id"`
-	Amount float32      `json:"amount"`
+	ResourceID int     `json:"resource_id"`
+	Amount     float32 `json:"amount"`
 }
 
 type Object struct {
-	ID int              `json:"id"`
-	SpriteID int        `json:"sprite_id"`
-	Name string         `json:"name"`
-	ResourceID int      `json:"resource_id"`
-	Amount float32      `json:"amount"`
+	ID         int     `json:"id"`
+	SpriteID   int     `json:"sprite_id"`
+	Name       string  `json:"name"`
+	ResourceID int     `json:"resource_id"`
+	Amount     float32 `json:"amount"`
 }
 
 type Objects struct {
-    Objects []*Object   `json:"objects"`
+	Objects []*Object `json:"objects"`
 }
 
 type Resources struct {
-    Resources []*Resource `json:"resource"`
+	Resources []*Resource `json:"resource"`
 }
 
 // Structures for the save file
 type SavedTile struct {
-	ObjectID int                            `json:"object_id"`
-	AccessibleResource *AccessibleResource  `json:"accessible_resource"`
-	Position           *engo.Point          `json:"position"`
-	Layer              float32              `json:"layer"`
+	ObjectID           int                 `json:"object_id"`
+	AccessibleResource *AccessibleResource `json:"accessible_resource"`
+	Position           *engo.Point         `json:"position"`
+	Layer              float32             `json:"layer"`
 }
 
 type SavedTiles struct {
@@ -53,19 +53,19 @@ type SavedTiles struct {
 }
 
 var (
-	LineHeight = 20
-	FontSize = 16
-	SpriteWidth = 32
+	LineHeight   = 20
+	FontSize     = 16
+	SpriteWidth  = 32
 	SpriteHeight = 32
-	PreloadList = []string{
+	PreloadList  = []string{
 		"textures/chick_32x32.png",
 		"tilemap/terrain-v7.png",
 	}
 	FullSpriteSheet *common.Spritesheet
-	objects *Objects
-	resources *Resources
+	objects         *Objects
+	resources       *Resources
 
-	ResourceById map[int]*Resource
+	ResourceById   map[int]*Resource
 	ResourceByType map[string]*Resource
 
 	ObjectById map[int]*Object

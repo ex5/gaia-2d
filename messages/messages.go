@@ -7,8 +7,8 @@ import (
 )
 
 type ControlMessage struct {
-	Action string
-	Data string
+	Action   string
+	Data     string
 	SpriteID int
 }
 
@@ -19,7 +19,7 @@ func (ControlMessage) Type() string {
 }
 
 type InteractionMessage struct {
-	Action string
+	Action      string
 	BasicEntity *ecs.BasicEntity
 }
 
@@ -44,7 +44,7 @@ type HUDTextMessage struct {
 	//ecs.BasicEntity
 	//common.SpaceComponent
 	//common.MouseComponent
-	Placeholder string
+	Placeholder                string
 	Line1, Line2, Line3, Line4 string
 }
 

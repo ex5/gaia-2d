@@ -1,12 +1,12 @@
 package controls
 
 import (
+	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/messages"
 	"log"
-	"fmt"
 )
 
 type controlEntity struct {
@@ -22,8 +22,8 @@ type MouseTracker struct {
 }
 
 type ControlsSystem struct {
-	world *ecs.World
-	entities []*controlEntity
+	world         *ecs.World
+	entities      []*controlEntity
 	hoveredEntity *controlEntity
 	*MouseTracker
 }
@@ -63,7 +63,7 @@ func (self *ControlsSystem) Update(dt float32) {
 	if engo.Input.Button("AddCreature").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "add_creature",
-			Data: "textures/chick_32x32.png",
+			Data:   "textures/chick_32x32.png",
 		})
 	}
 	if engo.Input.Button("QuickSave").JustPressed() {
@@ -71,7 +71,7 @@ func (self *ControlsSystem) Update(dt float32) {
 	}
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
-			Action: "add_object",
+			Action:   "add_object",
 			SpriteID: 1664,
 		})
 	}
@@ -88,14 +88,13 @@ func (self *ControlsSystem) Update(dt float32) {
 	if newHoveredEntity != nil && self.hoveredEntity == nil {
 		log.Printf("Hovering over an entity: %+v #%d\n", newHoveredEntity, newHoveredEntity.ID())
 		engo.Mailbox.Dispatch(messages.InteractionMessage{
-			Action: "mouse_hover",
+			Action:      "mouse_hover",
 			BasicEntity: newHoveredEntity.BasicEntity,
 		})
 		engo.SetCursor(engo.CursorHand)
 	}
 	self.hoveredEntity = newHoveredEntity
 }
-
 
 func (self *ControlsSystem) Remove(basic ecs.BasicEntity) {
 	delete := -1
@@ -130,10 +129,10 @@ func (self *ControlsSystem) HandleInteractMessage(m engo.Message) {
 		log.Printf("%+v", entity)
 		if entity != nil {
 			engo.Mailbox.Dispatch(messages.HUDTextMessage{
-				Line1:          fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-				Line2:          fmt.Sprintf("%v", entity),
-				Line3:          "<ControlsSystem>",
-				Line4:          "",
+				Line1: fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+				Line2: fmt.Sprintf("%v", entity),
+				Line3: "<ControlsSystem>",
+				Line4: "",
 			})
 		}
 	}

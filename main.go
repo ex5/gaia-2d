@@ -99,10 +99,10 @@ func (*myScene) Exit() {
 
 func main() {
 	opts := engo.RunOptions{
-		Title:          "Gaea",
-		Width:          worldWidth,
-		Height:         worldHeight,
-		StandardInputs: true,
+		Title:               "Gaea",
+		Width:               worldWidth,
+		Height:              worldHeight,
+		StandardInputs:      true,
 		OverrideCloseAction: true,
 	}
 	engo.Run(opts, &myScene{})
