@@ -13,9 +13,6 @@ import (
 	//"math"
 )
 
-var (
-	tiles []*Tile
-)
 
 type Matter struct {
 	Type string // plant, stone ?
@@ -33,7 +30,12 @@ type Tile struct {
 	*Matter
 }
 
-func Add(world *ecs.World, spriteID int, i int, j int, layer float32) *Tile {
+type WorldTilesSystem struct {
+	world       *ecs.World
+	tiles       []*Tile  // TODO entities
+}
+
+func (self *WorldTilesSystem) Add(spriteID int, i int, j int, layer float32) *Tile {
 	tile := &Tile{BasicEntity: ecs.NewBasic()}
 	tile.RenderComponent = common.RenderComponent{
 		Drawable: assets.FullSpriteSheet.Cell(spriteID),
@@ -47,10 +49,10 @@ func Add(world *ecs.World, spriteID int, i int, j int, layer float32) *Tile {
 		Height:   float32(assets.SpriteHeight),
 	}
 	tile.MouseComponent = &common.MouseComponent{Track: false}
-	tiles = append(tiles, tile)
+	self.tiles = append(self.tiles, tile)
 
 	// Add the tile to the various systems
-	for _, system := range world.Systems() {
+	for _, system := range self.world.Systems() {
 		switch sys := system.(type) {
 		case *common.RenderSystem:
 			sys.Add(&tile.BasicEntity, &tile.RenderComponent, &tile.SpaceComponent)
@@ -63,21 +65,21 @@ func Add(world *ecs.World, spriteID int, i int, j int, layer float32) *Tile {
 	return tile
 }
 
-func InitWorld(u engo.Updater) {
-	world, _ := u.(*ecs.World)
+func (self *WorldTilesSystem) New(world *ecs.World) {
+	self.world = world
 
 	assets.InitAssets()
 	mapSizeX, mapSizeY := 50, 50
 
-	tiles = make([]*Tile, 0)
+	self.tiles = make([]*Tile, 0)
 	for i := 0; i < mapSizeX; i ++ {
 		for j := 0; j < mapSizeY; j ++ {
-			Add(world, 1127, i, j, 0)
+			self.Add(1127, i, j, 0)
 
 			// Add a random vegetation tile
 			if rand.Int() % 3 == 0 {
 				plant := assets.GetRandomObjectOfType("plant")
-				vtile := Add(world, plant.ID, i, j, 1)
+				vtile := self.Add(plant.ID, i, j, 1)
 				vtile.Matter = &Matter{Type: plant.Matter.Type, Amount: plant.Amount}
 				vtile.Object = plant
 			}
@@ -87,11 +89,11 @@ func InitWorld(u engo.Updater) {
 	z_idx_max := 3.0
 	fmt.Printf("Max Z index of the terrain: %d\n", z_idx_max)
 
-	engo.Mailbox.Listen(messages.InteractionMessageType, HandleInteractMessage)
+	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 }
 
-func GetEntityByID(basicEntityID uint64) *Tile {
-	for _, e := range tiles {
+func (self *WorldTilesSystem) GetEntityByID(basicEntityID uint64) *Tile {
+	for _, e := range self.tiles {
 		if e.BasicEntity.ID() == basicEntityID {
 			return e
 		}
@@ -99,14 +101,14 @@ func GetEntityByID(basicEntityID uint64) *Tile {
 	return nil
 }
 
-func HandleInteractMessage(m engo.Message) {
+func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 	log.Printf("World: %+v", m)
 	msg, ok := m.(messages.InteractionMessage)
 	if !ok {
 		return
 	}
 	if msg.Action == "mouse_hover" && msg.BasicEntity != nil {
-		entity := GetEntityByID(msg.BasicEntity.ID())
+		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("World: %+v", entity)
 		if entity != nil {
 			engo.Mailbox.Dispatch(messages.HUDTextMessage{
@@ -118,3 +120,7 @@ func HandleInteractMessage(m engo.Message) {
 		}
 	}
 }
+
+func (*WorldTilesSystem) Update(dt float32) {}
+
+func (*WorldTilesSystem) Remove(ecs.BasicEntity) {}

@@ -65,7 +65,7 @@ func (self *myScene) Setup(u engo.Updater) {
 	world.AddSystem(&controls.ControlsSystem{})
 
 	// World
-	systems.InitWorld(u)
+	world.AddSystem(&systems.WorldTilesSystem{})
 
 	// HUD
 	systems.InitHUD(u)
