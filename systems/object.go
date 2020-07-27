@@ -91,10 +91,10 @@ func (self *ObjectSpawningSystem) AddObjectEntity(point engo.Point, entity *Obje
 			sys.Add(&entity.BasicEntity, &entity.RenderComponent, &entity.SpaceComponent)
 		case *common.CollisionSystem:
 			sys.Add(&entity.BasicEntity, &entity.CollisionComponent, &entity.SpaceComponent)
-		case *common.MouseSystem:
-			sys.Add(&entity.BasicEntity, &entity.MouseComponent, &entity.SpaceComponent, &entity.RenderComponent)
+		//case *common.MouseSystem:
+		//	sys.Add(&entity.BasicEntity, &entity.MouseComponent, &entity.SpaceComponent, &entity.RenderComponent)
 		case *controls.ControlsSystem:
-			sys.Add(&entity.BasicEntity, &entity.MouseComponent)
+			sys.Add(&entity.BasicEntity, &entity.MouseComponent, &entity.SpaceComponent, &entity.RenderComponent)
 		}
 	}
 
@@ -116,20 +116,20 @@ func (self *ObjectSpawningSystem) HandleControlMessage(m engo.Message) {
 }
 
 func (self *ObjectSpawningSystem) HandleInteractMessage(m engo.Message) {
-	log.Printf("%+v", m)
+	log.Printf("Objects: %+v", m)
 	msg, ok := m.(messages.InteractionMessage)
 	if !ok {
 		return
 	}
 	if msg.Action == "mouse_hover" && msg.BasicEntity != nil {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
-		log.Printf("%+v", entity)
+		log.Printf("Objects: %+v", entity)
 		if entity != nil {
 			engo.Mailbox.Dispatch(messages.HUDTextMessage{
 				Line1:          fmt.Sprintf("#%d", entity.ID()),
 				Line2:          fmt.Sprintf("sprite: %s", entity.Spritesheet),
-				Line3:          "line3",
-				Line4:          "line4",
+				Line3:          "<Object>",
+				Line4:          "",
 			})
 		}
 	}

@@ -61,6 +61,9 @@ func (self *myScene) Setup(u engo.Updater) {
 	engo.Input.RegisterButton("AddObject", engo.KeyF2)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
 
+	// Controls
+	world.AddSystem(&controls.ControlsSystem{})
+
 	// World
 	systems.InitWorld(u)
 
@@ -73,9 +76,6 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	// Solid inanimate Objects
 	world.AddSystem(&systems.ObjectSpawningSystem{})
-
-	// Controls
-	world.AddSystem(&controls.ControlsSystem{})
 
 	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)

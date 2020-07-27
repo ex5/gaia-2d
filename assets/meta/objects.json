@@ -1,0 +1,16 @@
+{
+    "objects": [
+        {
+            "id": 1738,
+            "name": "A patch of grass",
+            "matter_id": 1,
+            "amount": 50
+        },
+        {
+            "id": 1706,
+            "name": "Grassy area",
+            "matter_id": 1,
+            "amount": 200
+        }
+    ]
+}
