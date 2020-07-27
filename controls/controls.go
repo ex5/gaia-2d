@@ -66,6 +66,9 @@ func (self *ControlsSystem) Update(dt float32) {
 			Data: "textures/chick_32x32.png",
 		})
 	}
+	if engo.Input.Button("QuickSave").JustPressed() {
+		engo.Mailbox.Dispatch(messages.SaveMessage{Filepath: "quick.save"})
+	}
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "add_object",

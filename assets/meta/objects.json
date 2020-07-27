@@ -4,15 +4,22 @@
             "id": 1,
             "sprite_id": 1738,
             "name": "A patch of grass",
-            "matter_id": 1,
+            "resource_id": 1,
             "amount": 50
         },
         {
             "id": 2,
             "sprite_id": 1706,
             "name": "Grassy area",
-            "matter_id": 1,
+            "resource_id": 1,
             "amount": 200
+        },
+        {
+            "id": 3,
+            "sprite_id": 1127,
+            "name": "Grassland",
+            "resource_id": 1,
+            "amount": 0
         }
     ]
 }

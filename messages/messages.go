@@ -29,6 +29,16 @@ func (InteractionMessage) Type() string {
 	return InteractionMessageType
 }
 
+type SaveMessage struct {
+	Filepath string
+}
+
+const SaveMessageType string = "SaveMessage"
+
+func (SaveMessage) Type() string {
+	return SaveMessageType
+}
+
 // HUDTextMessage updates the HUD text based on messages sent from other systems
 type HUDTextMessage struct {
 	//ecs.BasicEntity

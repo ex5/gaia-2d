@@ -59,6 +59,7 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
 	engo.Input.RegisterButton("AddObject", engo.KeyF2)
+	engo.Input.RegisterButton("QuickSave", engo.KeyF5)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
 
 	// Controls

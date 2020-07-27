@@ -1,6 +1,7 @@
 package assets
 
 import (
+	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 
 	//"fmt"
@@ -11,27 +12,44 @@ import (
 	"os"
 )
 
-type Matter struct {
-	ID int          `json:"id"`
-	Type string     `json:"type"`
+// Description of a resource
+type Resource struct {
+	ID int              `json:"id"`
+	Type string         `json:"type"`
+}
+
+// Mutable resource, e.g. plant matter available at a specific tile
+type AccessibleResource struct {
+	ResourceID int      `json:"resource_id"`
+	Amount float32      `json:"amount"`
 }
 
 type Object struct {
-	ID int          `json:"id"`
-	SpriteID int    `json:"sprite_id"`
-	Name string     `json:"name"`
-	MatterID int    `json:"matter_id"`
-	Amount float32  `json:"amount"`
-
-	Matter *Matter
+	ID int              `json:"id"`
+	SpriteID int        `json:"sprite_id"`
+	Name string         `json:"name"`
+	ResourceID int      `json:"resource_id"`
+	Amount float32      `json:"amount"`
 }
 
 type Objects struct {
-    Objects []*Object `json:"objects"`
+    Objects []*Object   `json:"objects"`
 }
 
-type KindsOfMatter struct {
-    KindsOfMatter []*Matter `json:"matter"`
+type Resources struct {
+    Resources []*Resource `json:"resource"`
+}
+
+// Structures for the save file
+type SavedTile struct {
+	ObjectID int                            `json:"object_id"`
+	AccessibleResource *AccessibleResource  `json:"accessible_resource"`
+	Position           *engo.Point          `json:"position"`
+	Layer              float32              `json:"layer"`
+}
+
+type SavedTiles struct {
+	Tiles []*SavedTile `json:"tiles"`
 }
 
 var (
@@ -45,7 +63,12 @@ var (
 	}
 	FullSpriteSheet *common.Spritesheet
 	objects *Objects
-	matter *KindsOfMatter
+	resources *Resources
+
+	ResourceById map[int]*Resource
+	ResourceByType map[string]*Resource
+
+	ObjectById map[int]*Object
 )
 
 func InitAssets() {
@@ -59,31 +82,58 @@ func InitAssets() {
 	json.Unmarshal(byteValue, &objects)
 
 	// Load other related metadata
-	metaJsonFile, _ := os.Open("assets/meta/matter.json")
+	metaJsonFile, _ := os.Open("assets/meta/resource.json")
 	defer metaJsonFile.Close()
 	byteValue, _ = ioutil.ReadAll(metaJsonFile)
-	json.Unmarshal(byteValue, &matter)
-	matterById := make(map[int]*Matter)
-	for _, m := range matter.KindsOfMatter {
-		matterById[m.ID] = m
+	json.Unmarshal(byteValue, &resources)
+
+	// Prepare hashes for ease of access to loaded assets
+	ResourceById = make(map[int]*Resource)
+	for _, r := range resources.Resources {
+		ResourceById[r.ID] = r
 	}
-	// Fill in references
-	for _, v := range objects.Objects {
-		v.Matter = matterById[v.MatterID]
+	ResourceByType = make(map[string]*Resource)
+	for _, r := range resources.Resources {
+		ResourceByType[r.Type] = r
+	}
+	ObjectById = make(map[int]*Object)
+	for _, o := range objects.Objects {
+		ObjectById[o.ID] = o
 	}
 }
 
-func GetObjectsByType(matterType string) []*Object {
+func GetResourceByID(resourceID int) *Resource {
+	if resource, ok := ResourceById[resourceID]; ok {
+		return resource
+	}
+	return nil
+}
+
+func GetResourceByType(resourceType string) *Resource {
+	if resource, ok := ResourceByType[resourceType]; ok {
+		return resource
+	}
+	return nil
+}
+
+func GetObjectById(objectID int) *Object {
+	if object, ok := ObjectById[objectID]; ok {
+		return object
+	}
+	return nil
+}
+
+func GetObjectsByType(resourceType string) []*Object {
 	var result []*Object
 	for _, v := range objects.Objects {
-		if v.Matter.Type == matterType {
+		if GetResourceByID(v.ResourceID).Type == resourceType {
 			result = append(result, v)
 		}
 	}
 	return result
 }
 
-func GetRandomObjectOfType(matterType string) *Object {
-	objects := GetObjectsByType(matterType)
+func GetRandomObjectOfType(resourceType string) *Object {
+	objects := GetObjectsByType(resourceType)
 	return objects[rand.Intn(len(objects))]
 }
