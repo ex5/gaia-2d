@@ -15,7 +15,7 @@ type ControlMessage struct {
 const ControlMessageType string = "ControlMessage"
 
 func (ControlMessage) Type() string {
-  return ControlMessageType
+	return ControlMessageType
 }
 
 type InteractionMessage struct {

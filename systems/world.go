@@ -69,9 +69,16 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 	self.world = world
 
 	assets.InitAssets()
-	mapSizeX, mapSizeY := 50, 50
 
 	self.tiles = make([]*Tile, 0)
+	self.Generate()
+
+	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
+	engo.Mailbox.Listen(messages.SaveMessageType, self.HandleSaveMessage)
+}
+
+func (self *WorldTilesSystem) Generate() {
+	mapSizeX, mapSizeY := 50, 50
 	for i := 0; i < mapSizeX; i ++ {
 		for j := 0; j < mapSizeY; j ++ {
 			self.Add(1127, i, j, 0)
@@ -79,7 +86,7 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 			// Add a random vegetation tile
 			if rand.Int() % 3 == 0 {
 				plant := assets.GetRandomObjectOfType("plant")
-				vtile := self.Add(plant.ID, i, j, 1)
+				vtile := self.Add(plant.SpriteID, i, j, 1)
 				vtile.Matter = &Matter{Type: plant.Matter.Type, Amount: plant.Amount}
 				vtile.Object = plant
 			}
@@ -88,8 +95,6 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 	}
 	z_idx_max := 3.0
 	fmt.Printf("Max Z index of the terrain: %d\n", z_idx_max)
-
-	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 }
 
 func (self *WorldTilesSystem) GetEntityByID(basicEntityID uint64) *Tile {

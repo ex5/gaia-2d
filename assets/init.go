@@ -18,6 +18,7 @@ type Matter struct {
 
 type Object struct {
 	ID int          `json:"id"`
+	SpriteID int    `json:"sprite_id"`
 	Name string     `json:"name"`
 	MatterID int    `json:"matter_id"`
 	Amount float32  `json:"amount"`
