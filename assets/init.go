@@ -53,11 +53,17 @@ type SavedTiles struct {
 }
 
 var (
-	LineHeight   = 20
-	FontSize     = 16
 	SpriteWidth  = 32
 	SpriteHeight = 32
-	PreloadList  = []string{
+	// UI
+	LineHeight             = 20
+	FontURL                = "fonts/arcade_n.ttf"
+	FontSize       float64 = 14
+	HoverTipHeight float32 = 200
+	HUDLayer       float32 = 1001
+	HUDMarginL     float32 = 20
+
+	PreloadList = []string{
 		"textures/chick_32x32.png",
 		"tilemap/terrain-v7.png",
 	}
