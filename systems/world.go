@@ -13,6 +13,15 @@ import (
 	//"math"
 )
 
+var (
+	tiles []*Tile
+)
+
+type Matter struct {
+	Type string // plant, stone ?
+	Amount float32
+}
+
 type Tile struct {
 	ecs.BasicEntity
 	common.RenderComponent
@@ -24,17 +33,10 @@ type Tile struct {
 	*Matter
 }
 
-type Matter struct {
-	Type string // plant, stone ?
-	Amount float32
-}
-
-var tiles []*Tile
-
-func Add(world *ecs.World, atlasID int, i int, j int, layer float32) *Tile {
+func Add(world *ecs.World, spriteID int, i int, j int, layer float32) *Tile {
 	tile := &Tile{BasicEntity: ecs.NewBasic()}
 	tile.RenderComponent = common.RenderComponent{
-		Drawable: assets.FullSpriteSheet.Cell(atlasID),
+		Drawable: assets.FullSpriteSheet.Cell(spriteID),
 		Scale:    engo.Point{1, 1},
 	}
 	position := engo.Point{float32(i * assets.SpriteWidth), float32(j * assets.SpriteHeight)}
@@ -109,9 +111,9 @@ func HandleInteractMessage(m engo.Message) {
 		if entity != nil {
 			engo.Mailbox.Dispatch(messages.HUDTextMessage{
 				Line1:          fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+				Line3:          fmt.Sprintf("%v", entity.Matter),
 				Line2:          fmt.Sprintf("%v", entity.Object),
-				Line3:          "<World>",
-				Line4:          "",
+				Line4:          "<World>",
 			})
 		}
 	}

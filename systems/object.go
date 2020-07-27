@@ -57,10 +57,10 @@ func (self *ObjectSpawningSystem) CreateObjectFromSpriteSource(point engo.Point,
 	return self.AddObjectEntity(point, entity, collisionMain)
 }
 
-func (self *ObjectSpawningSystem) CreateObjectFromTextureAtlas(point engo.Point, atlasID int, collisionMain bool) *Object {
+func (self *ObjectSpawningSystem) CreateObjectFromTextureAtlas(point engo.Point, spriteID int, collisionMain bool) *Object {
 	entity := &Object{BasicEntity: ecs.NewBasic(), Spritesheet: assets.FullSpriteSheet}
 	entity.RenderComponent = common.RenderComponent{
-		Drawable: assets.FullSpriteSheet.Cell(atlasID),
+		Drawable: assets.FullSpriteSheet.Cell(spriteID),
 		Scale:    engo.Point{1, 1},
 	}
 
@@ -111,7 +111,7 @@ func (self *ObjectSpawningSystem) HandleControlMessage(m engo.Message) {
 	}
 	if msg.Action == "add_object" {
 		x, y := util.ToGridPosition(self.mouseTracker.MouseX, self.mouseTracker.MouseY)
-		self.CreateObjectFromTextureAtlas(engo.Point{x, y}, msg.AtlasID, false)
+		self.CreateObjectFromTextureAtlas(engo.Point{x, y}, msg.SpriteID, false)
 	}
 }
 

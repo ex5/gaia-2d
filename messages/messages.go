@@ -9,7 +9,7 @@ import (
 type ControlMessage struct {
 	Action string
 	Data string
-	AtlasID int
+	SpriteID int
 }
 
 const ControlMessageType string = "ControlMessage"
