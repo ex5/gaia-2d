@@ -22,6 +22,7 @@ type Tile struct {
 	common.SpaceComponent
 	common.CollisionComponent
 	*common.MouseComponent
+	*common.Spritesheet
 
 	Layer float32
 	*assets.Object
@@ -34,13 +35,12 @@ type WorldTilesSystem struct {
 	tiles []*Tile // TODO entities
 }
 
-func (self *WorldTilesSystem) Add(spriteID int, position *engo.Point, layer float32) *Tile {
-	tile := &Tile{BasicEntity: ecs.NewBasic()}
+func (self *WorldTilesSystem) Add(spritesheet *common.Spritesheet, spriteID int, position *engo.Point, layer float32, collisionComponent common.CollisionComponent) *Tile {
+	tile := &Tile{BasicEntity: ecs.NewBasic(), Spritesheet: spritesheet, Layer: layer}
 	tile.RenderComponent = common.RenderComponent{
-		Drawable: assets.FullSpriteSheet.Cell(spriteID),
+		Drawable: tile.Spritesheet.Cell(spriteID),
 		Scale:    engo.Point{1, 1},
 	}
-	tile.Layer = layer
 	tile.RenderComponent.SetZIndex(tile.Layer)
 	tile.SpaceComponent = common.SpaceComponent{
 		Position: *position,
@@ -48,6 +48,7 @@ func (self *WorldTilesSystem) Add(spriteID int, position *engo.Point, layer floa
 		Height:   float32(assets.SpriteHeight),
 	}
 	tile.MouseComponent = &common.MouseComponent{Track: false}
+	tile.CollisionComponent = collisionComponent
 	self.tiles = append(self.tiles, tile)
 
 	// Add the tile to the various systems
@@ -64,6 +65,11 @@ func (self *WorldTilesSystem) Add(spriteID int, position *engo.Point, layer floa
 	return tile
 }
 
+func (self *WorldTilesSystem) CreateFromSpriteSource(point *engo.Point, spriteSrc string, collisionComponent common.CollisionComponent) *Tile {
+	spritesheet := assets.GetOrLoadSpritesheet(spriteSrc)
+	return self.Add(spritesheet, 0, point, 10, collisionComponent)
+}
+
 func (self *WorldTilesSystem) New(world *ecs.World) {
 	self.world = world
 
@@ -74,22 +80,25 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 	self.LoadFromSaveFile("quick.save")
 
 	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
+	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
 	engo.Mailbox.Listen(messages.SaveMessageType, self.HandleSaveMessage)
 }
 
 func (self *WorldTilesSystem) Generate() {
 	mapSizeX, mapSizeY := 50, 50
 	ground := assets.GetObjectById(3) // grassland, default ground
+	// ground doesn't collide with anything
+	collisionC := common.CollisionComponent{Main: 0, Group: 0}
 	for i := 0; i < mapSizeX; i++ {
 		for j := 0; j < mapSizeY; j++ {
 			position := util.ToPoint(i, j)
-			tile := self.Add(ground.SpriteID, position, 0)
+			tile := self.Add(assets.FullSpriteSheet, ground.SpriteID, position, 0, collisionC)
 			tile.Object = ground
 
 			// Add a random vegetation tile
 			if rand.Int()%3 == 0 {
 				plant := assets.GetRandomObjectOfType("plant")
-				vtile := self.Add(plant.SpriteID, position, 1)
+				vtile := self.Add(assets.FullSpriteSheet, plant.SpriteID, position, 1, collisionC)
 				vtile.AccessibleResource = &assets.AccessibleResource{plant.ResourceID, plant.Amount}
 				vtile.Resource = assets.GetResourceByID(plant.ResourceID)
 				vtile.Object = plant
@@ -138,6 +147,25 @@ func (self *WorldTilesSystem) HandleSaveMessage(m engo.Message) {
 	}
 	self.Save(msg.Filepath)
 }
+
+func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
+       log.Printf("%+v", m)
+       msg, ok := m.(messages.ControlMessage)
+       if !ok {
+               return
+       }
+       if msg.Action == "add_object" {
+	       for _, system := range self.world.Systems() {
+		       controlsSystem, ok := system.(*controls.ControlsSystem)
+		       if ok {
+			       x, y := util.ToGridPosition(controlsSystem.MouseTracker.MouseX, controlsSystem.MouseTracker.MouseY)
+			       self.Add(assets.FullSpriteSheet, msg.SpriteID, &engo.Point{x, y}, 4, common.CollisionComponent{Main: 0, Group: 1})
+			       break
+		       }
+	       }
+       }
+}
+
 
 func (*WorldTilesSystem) Update(dt float32) {}
 
@@ -188,7 +216,7 @@ func (self *WorldTilesSystem) LoadFromSaveFile(filepath string) {
 		log.Println(savedTile, savedTile.ObjectID, savedTile.Position, savedTile.Layer)
 		object := assets.GetObjectById(savedTile.ObjectID)
 		log.Println(object)
-		vtile := self.Add(object.SpriteID, savedTile.Position, savedTile.Layer)
+		vtile := self.Add(assets.FullSpriteSheet, object.SpriteID, savedTile.Position, savedTile.Layer, common.CollisionComponent{Main: 0, Group: 0}) // TODO load collision status/group etc
 		vtile.AccessibleResource = savedTile.AccessibleResource
 		vtile.Resource = assets.GetResourceByID(object.ResourceID)
 		vtile.Object = object

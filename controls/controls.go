@@ -67,7 +67,8 @@ func (self *ControlsSystem) Update(dt float32) {
 		})
 	}
 	if engo.Input.Button("QuickSave").JustPressed() {
-		engo.Mailbox.Dispatch(messages.SaveMessage{Filepath: "quick.save"})
+		// TODO the game should be paused first
+		self.SaveGame("quick.save")
 	}
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
@@ -136,4 +137,14 @@ func (self *ControlsSystem) HandleInteractMessage(m engo.Message) {
 			})
 		}
 	}
+}
+
+/*
+type SavedGame struct {
+	tiles *assets.SavedTiles
+	objects *SavedObjects
+}
+*/
+
+func (self *ControlsSystem) SaveGame(filepath string) {
 }

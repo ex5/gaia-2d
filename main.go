@@ -75,9 +75,6 @@ func (self *myScene) Setup(u engo.Updater) {
 	// Creatures
 	world.AddSystem(&systems.CreatureSpawningSystem{})
 
-	// Solid inanimate Objects
-	world.AddSystem(&systems.ObjectSpawningSystem{})
-
 	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)
 		msg, ok := m.(messages.ControlMessage)

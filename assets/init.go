@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"log"
 )
 
 // Description of a resource
@@ -67,6 +68,8 @@ var (
 		"textures/chick_32x32.png",
 		"tilemap/terrain-v7.png",
 	}
+	Spritesheets map[string]*common.Spritesheet
+
 	FullSpriteSheet *common.Spritesheet
 	objects         *Objects
 	resources       *Resources
@@ -106,6 +109,9 @@ func InitAssets() {
 	for _, o := range objects.Objects {
 		ObjectById[o.ID] = o
 	}
+
+	// Initialise "cache" of known spritesheets
+	Spritesheets = make(map[string]*common.Spritesheet)
 }
 
 func GetResourceByID(resourceID int) *Resource {
@@ -142,4 +148,15 @@ func GetObjectsByType(resourceType string) []*Object {
 func GetRandomObjectOfType(resourceType string) *Object {
 	objects := GetObjectsByType(resourceType)
 	return objects[rand.Intn(len(objects))]
+}
+
+func GetOrLoadSpritesheet(spriteSrc string) *common.Spritesheet {
+	_, exists := Spritesheets[spriteSrc]
+	if !exists {
+		log.Printf("Loading a new sprite source: %s\n", spriteSrc)
+		Spritesheets[spriteSrc] = common.NewSpritesheetFromFile(spriteSrc, SpriteWidth, SpriteHeight)
+	} else {
+		log.Printf("%s already loaded\n", spriteSrc)
+	}
+	return Spritesheets[spriteSrc]
 }

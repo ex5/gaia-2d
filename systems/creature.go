@@ -15,7 +15,7 @@ type CreatureMouseTracker struct {
 }
 
 type Creature struct {
-	Object *Object
+	*Tile
 	common.AnimationComponent
 }
 
@@ -28,26 +28,26 @@ type CreatureSpawningSystem struct {
 
 func (self *Creature) Update(dt float32) {
 	//log.Printf("%+v %+v", dt, self.SpaceComponent)
-	self.Object.SpaceComponent.Position.X += dt * 100
+	self.Tile.SpaceComponent.Position.X += dt * 100
 }
 
 func (self *CreatureSpawningSystem) CreateCreature(point engo.Point, spriteSrc string) *Creature {
 	var entity *Creature
 	for _, system := range self.world.Systems() {
 		switch sys := system.(type) {
-		case *ObjectSpawningSystem:
-			entity = &Creature{Object: sys.CreateObjectFromSpriteSource(point, spriteSrc, true)}
+		case *WorldTilesSystem:
+			entity = &Creature{Tile: sys.CreateFromSpriteSource(&point, spriteSrc, common.CollisionComponent{Main: 1, Group: 0})}
 		}
 	}
 
-	entity.AnimationComponent = common.NewAnimationComponent(entity.Object.Spritesheet.Drawables(), 0.25)
+	entity.AnimationComponent = common.NewAnimationComponent(entity.Tile.Spritesheet.Drawables(), 0.25)
 	entity.AnimationComponent.AddAnimations(self.entityActions)
 	entity.AnimationComponent.AddDefaultAnimation(self.entityActions[0])
 
 	for _, system := range self.world.Systems() {
 		switch sys := system.(type) {
 		case *common.AnimationSystem:
-			sys.Add(&entity.Object.BasicEntity, &entity.AnimationComponent, &entity.Object.RenderComponent)
+			sys.Add(&entity.Tile.BasicEntity, &entity.AnimationComponent, &entity.Tile.RenderComponent)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 // Update is ran every frame, with `dt` being the time
 // in seconds since the last frame
 func (self *CreatureSpawningSystem) Update(dt float32) {
-	//log.Printf("Entities: %+v", self.entities)
+	//log.Printf("Entities: %+v\n", self.entities)
 	for _, entity := range self.entities {
 		//log.Printf("Entity: %d, %+v", i, entity)
 		entity.Update(dt)
