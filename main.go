@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	// "fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -10,9 +8,7 @@ import (
 	"gogame/controls"
 	"gogame/messages"
 	"gogame/systems"
-	"golang.org/x/image/font/gofont/gosmallcaps"
 	"image/color"
-	// "math"
 	"log"
 )
 
@@ -31,15 +27,13 @@ func (*myScene) Type() string { return "gaea" }
 // Preload is called before loading any assets from the disk,
 // to allow you to register / queue them
 func (*myScene) Preload() {
-	if err := engo.Files.Load(assets.PreloadList...); err != nil {
-		panic(err)
-	}
-	engo.Files.LoadReaderData("fonts/arcade_n.ttf", bytes.NewReader(gosmallcaps.TTF))
+	assets.InitAssets()
 }
 
 // Setup is called before the main loop starts. It allows you
 // to add entities and systems to your Scene.
 func (self *myScene) Setup(u engo.Updater) {
+	log.Println("[myScene] Setup")
 	world, _ := u.(*ecs.World)
 
 	// Basic systems and controls
@@ -59,7 +53,9 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
 	engo.Input.RegisterButton("AddObject", engo.KeyF2)
+	engo.Input.RegisterButton("NewWorld", engo.KeyF4)
 	engo.Input.RegisterButton("QuickSave", engo.KeyF5)
+	engo.Input.RegisterButton("QuickLoad", engo.KeyF6)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
 
 	// Controls
@@ -83,6 +79,21 @@ func (self *myScene) Setup(u engo.Updater) {
 		}
 		if msg.Action == "exit" {
 			self.Exit()
+		}
+		if msg.Action == "ReloadWorld" {
+			// Set new scene, forcing to recreate the world
+			newScene := &myScene{}
+			engo.SetScene(newScene, true)
+			if msg.Data != "" {
+				engo.Mailbox.Dispatch(messages.ControlMessage{
+					Action: "WorldLoadSaveFile",
+					Data:   msg.Data,
+				})
+			} else {
+				engo.Mailbox.Dispatch(messages.ControlMessage{
+					Action: "WorldGenerate",
+				})
+			}
 		}
 	})
 }

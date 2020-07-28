@@ -112,4 +112,18 @@ func (self *CreatureSpawningSystem) Update(dt float32) {
 }
 
 // Remove is called whenever an Creature is removed from the World, in order to remove it from this sytem as well
-func (*CreatureSpawningSystem) Remove(ecs.BasicEntity) {}
+func (self *CreatureSpawningSystem) Remove(e ecs.BasicEntity) {
+	delete := -1
+	for index, entity := range self.entities {
+		if entity.BasicEntity.ID() == e.ID() {
+			delete = index
+		}
+	}
+	// Also remove from whichever other systems this system might have added the entity to
+	for _, system := range self.world.Systems() {
+		system.Remove(e)
+	}
+	if delete >= 0 {
+		self.entities = append(self.entities[:delete], self.entities[delete+1:]...)
+	}
+}

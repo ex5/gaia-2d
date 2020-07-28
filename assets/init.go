@@ -4,13 +4,13 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 
-	//"fmt"
+	"bytes"
 	"encoding/json"
-	//"errors"
+	"golang.org/x/image/font/gofont/gosmallcaps"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"os"
-	"log"
 )
 
 // Description of a resource
@@ -80,9 +80,37 @@ var (
 	ObjectById map[int]*Object
 )
 
+func loadSpritesheets() {
+	// Initialise "cache" of known spritesheets
+	Spritesheets = make(map[string]*common.Spritesheet)
+	for _, spriteSrc := range PreloadList {
+		_, exists := Spritesheets[spriteSrc]
+		if !exists {
+			log.Printf("Loading a new spritesheet from %s\n", spriteSrc)
+			Spritesheets[spriteSrc] = common.NewSpritesheetFromFile(spriteSrc, SpriteWidth, SpriteHeight)
+		} else {
+			log.Printf("%s already loaded\n", spriteSrc)
+		}
+	}
+}
+
 func InitAssets() {
-	// Load the spritesheet
-	FullSpriteSheet = common.NewSpritesheetFromFile("tilemap/terrain-v7.png", 32, 32)
+	path, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	engo.Files.SetRoot(path + "/assets")
+	log.Println(engo.Files.GetRoot())
+	if err := engo.Files.Load(PreloadList...); err != nil {
+		panic(err)
+	}
+
+	// Load the font
+	engo.Files.LoadReaderData(FontURL, bytes.NewReader(gosmallcaps.TTF))
+
+	// Load the spritesheets
+	loadSpritesheets()
+	FullSpriteSheet = GetSpritesheet("tilemap/terrain-v7.png")
 
 	// Load objects
 	objectsJsonFile, _ := os.Open("assets/meta/objects.json")
@@ -109,9 +137,6 @@ func InitAssets() {
 	for _, o := range objects.Objects {
 		ObjectById[o.ID] = o
 	}
-
-	// Initialise "cache" of known spritesheets
-	Spritesheets = make(map[string]*common.Spritesheet)
 }
 
 func GetResourceByID(resourceID int) *Resource {
@@ -150,13 +175,10 @@ func GetRandomObjectOfType(resourceType string) *Object {
 	return objects[rand.Intn(len(objects))]
 }
 
-func GetOrLoadSpritesheet(spriteSrc string) *common.Spritesheet {
+func GetSpritesheet(spriteSrc string) *common.Spritesheet {
 	_, exists := Spritesheets[spriteSrc]
 	if !exists {
-		log.Printf("Loading a new sprite source: %s\n", spriteSrc)
-		Spritesheets[spriteSrc] = common.NewSpritesheetFromFile(spriteSrc, SpriteWidth, SpriteHeight)
-	} else {
-		log.Printf("%s already loaded\n", spriteSrc)
+		panic("Spritesheet does not appear to be loaded")
 	}
 	return Spritesheets[spriteSrc]
 }

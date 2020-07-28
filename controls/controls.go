@@ -67,8 +67,22 @@ func (self *ControlsSystem) Update(dt float32) {
 		})
 	}
 	if engo.Input.Button("QuickSave").JustPressed() {
-		// TODO the game should be paused first
-		self.SaveGame("quick.save")
+		engo.Mailbox.Dispatch(messages.ControlMessage{
+			Action: "SaveGame",
+			Data:   "quick.save",
+		})
+	}
+	if engo.Input.Button("NewWorld").JustPressed() {
+		engo.Mailbox.Dispatch(messages.ControlMessage{
+			Action: "ReloadWorld",
+			Data:   "",
+		})
+	}
+	if engo.Input.Button("QuickLoad").JustPressed() {
+		engo.Mailbox.Dispatch(messages.ControlMessage{
+			Action: "ReloadWorld",
+			Data:   "quick.save",
+		})
 	}
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
@@ -97,11 +111,19 @@ func (self *ControlsSystem) Update(dt float32) {
 	self.hoveredEntity = newHoveredEntity
 }
 
-func (self *ControlsSystem) Remove(basic ecs.BasicEntity) {
+func (self *ControlsSystem) Remove(e ecs.BasicEntity) {
 	delete := -1
-	for index, e := range self.entities {
-		if e.BasicEntity.ID() == basic.ID() {
+	for index, entity := range self.entities {
+		if entity.BasicEntity.ID() == e.ID() {
 			delete = index
+			break
+		}
+	}
+	// Also remove from whichever other systems this system has added the entity to
+	for _, system := range self.world.Systems() {
+		switch sys := system.(type) {
+		case *common.MouseSystem:
+			sys.Remove(e)
 			break
 		}
 	}

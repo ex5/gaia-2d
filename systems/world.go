@@ -66,18 +66,13 @@ func (self *WorldTilesSystem) Add(spritesheet *common.Spritesheet, spriteID int,
 }
 
 func (self *WorldTilesSystem) CreateFromSpriteSource(point *engo.Point, spriteSrc string, collisionComponent common.CollisionComponent) *Tile {
-	spritesheet := assets.GetOrLoadSpritesheet(spriteSrc)
+	spritesheet := assets.GetSpritesheet(spriteSrc)
 	return self.Add(spritesheet, 0, point, 10, collisionComponent)
 }
 
 func (self *WorldTilesSystem) New(world *ecs.World) {
 	self.world = world
-
-	assets.InitAssets()
-
 	self.tiles = make([]*Tile, 0)
-	//self.Generate()
-	self.LoadFromSaveFile("quick.save")
 
 	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
@@ -149,27 +144,49 @@ func (self *WorldTilesSystem) HandleSaveMessage(m engo.Message) {
 }
 
 func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
-       log.Printf("%+v", m)
-       msg, ok := m.(messages.ControlMessage)
-       if !ok {
-               return
-       }
-       if msg.Action == "add_object" {
-	       for _, system := range self.world.Systems() {
-		       controlsSystem, ok := system.(*controls.ControlsSystem)
-		       if ok {
-			       x, y := util.ToGridPosition(controlsSystem.MouseTracker.MouseX, controlsSystem.MouseTracker.MouseY)
-			       self.Add(assets.FullSpriteSheet, msg.SpriteID, &engo.Point{x, y}, 4, common.CollisionComponent{Main: 0, Group: 1})
-			       break
-		       }
-	       }
-       }
+	log.Printf("%+v", m)
+	msg, ok := m.(messages.ControlMessage)
+	if !ok {
+		return
+	}
+	if msg.Action == "add_object" {
+		for _, system := range self.world.Systems() {
+			controlsSystem, ok := system.(*controls.ControlsSystem)
+			if ok {
+				x, y := util.ToGridPosition(controlsSystem.MouseTracker.MouseX, controlsSystem.MouseTracker.MouseY)
+				self.Add(assets.FullSpriteSheet, msg.SpriteID, &engo.Point{x, y}, 4, common.CollisionComponent{Main: 0, Group: 1})
+				break
+			}
+		}
+	} else if msg.Action == "SaveGame" {
+		// TODO the game should be paused first
+		self.Save(msg.Data)
+	} else if msg.Action == "WorldLoadSaveFile" {
+		// TODO the game should be paused first
+		self.LoadFromSaveFile(msg.Data)
+	} else if msg.Action == "WorldGenerate" {
+		// TODO the game should be paused first
+		self.Generate()
+	}
 }
-
 
 func (*WorldTilesSystem) Update(dt float32) {}
 
-func (*WorldTilesSystem) Remove(ecs.BasicEntity) {}
+func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
+	delete := -1
+	for index, entity := range self.tiles {
+		if entity.BasicEntity.ID() == e.ID() {
+			delete = index
+		}
+	}
+	// Also remove from whichever other systems this system might have added the entity to
+	for _, system := range self.world.Systems() {
+		system.Remove(e)
+	}
+	if delete >= 0 {
+		self.tiles = append(self.tiles[:delete], self.tiles[delete+1:]...)
+	}
+}
 
 // Saving-related functionality
 func (self *Tile) ToSavedTile() *assets.SavedTile {
