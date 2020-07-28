@@ -227,7 +227,7 @@ func (self *WorldTilesSystem) Save(filepath string) {
 		Name:      "EventMessage",
 		HideAfter: 3 * time.Second,
 		Lines: []string{
-			"Saved!",
+			fmt.Sprintf("Saved to %s", filepath),
 		},
 	})
 }
@@ -251,6 +251,14 @@ func (self *WorldTilesSystem) LoadFromSaveFile(filepath string) {
 		vtile.Resource = assets.GetResourceByID(object.ResourceID)
 		vtile.Object = object
 	}
+
+	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+		Name:      "EventMessage",
+		HideAfter: 3 * time.Second,
+		Lines: []string{
+			fmt.Sprintf("Loaded %s", filepath),
+		},
+	})
 	z_idx_max := 3.0
 	fmt.Printf("Max Z index of the terrain: %d\n", z_idx_max)
 }
