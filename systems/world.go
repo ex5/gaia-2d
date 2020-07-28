@@ -199,7 +199,7 @@ func (self *Tile) ToSavedTile() *assets.SavedTile {
 	if self.Object != nil {
 		objectID = self.Object.ID
 	}
-	return &assets.SavedTile{objectID, self.AccessibleResource, &self.SpaceComponent.Position, self.Layer}
+	return &assets.SavedTile{objectID, self.AccessibleResource, &self.SpaceComponent.Position, self.Layer, self.CollisionComponent}
 }
 
 func (self *WorldTilesSystem) ToSavedTiles() *assets.SavedTiles {
@@ -246,7 +246,7 @@ func (self *WorldTilesSystem) LoadFromSaveFile(filepath string) {
 		log.Println(savedTile, savedTile.ObjectID, savedTile.Position, savedTile.Layer)
 		object := assets.GetObjectById(savedTile.ObjectID)
 		log.Println(object)
-		vtile := self.Add(assets.FullSpriteSheet, object.SpriteID, savedTile.Position, savedTile.Layer, common.CollisionComponent{Main: 0, Group: 0}) // TODO load collision status/group etc
+		vtile := self.Add(assets.FullSpriteSheet, object.SpriteID, savedTile.Position, savedTile.Layer, savedTile.CollisionComponent)
 		vtile.AccessibleResource = savedTile.AccessibleResource
 		vtile.Resource = assets.GetResourceByID(object.ResourceID)
 		vtile.Object = object

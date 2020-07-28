@@ -43,10 +43,11 @@ type Resources struct {
 
 // Structures for the save file
 type SavedTile struct {
-	ObjectID           int                 `json:"object_id"`
-	AccessibleResource *AccessibleResource `json:"accessible_resource"`
-	Position           *engo.Point         `json:"position"`
-	Layer              float32             `json:"layer"`
+	ObjectID           int                       `json:"object_id"`
+	AccessibleResource *AccessibleResource       `json:"accessible_resource"`
+	Position           *engo.Point               `json:"position"`
+	Layer              float32                   `json:"layer"`
+	CollisionComponent common.CollisionComponent `json:"collision_component"`
 }
 
 type SavedTiles struct {
