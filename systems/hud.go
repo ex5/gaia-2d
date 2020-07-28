@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	z_idx_hud       int = 999
+	z_idx_hud int = 999
 )
 
 type HUD struct {

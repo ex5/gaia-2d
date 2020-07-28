@@ -8,6 +8,8 @@ import (
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
 	"gogame/messages"
+	"log"
+	"time"
 )
 
 type mouseTracker struct {
@@ -25,10 +27,17 @@ type Text struct {
 // HUDTextEntity is an entity for the text system. This keeps track of the position
 // size and text associated with that position.
 type HUDTextEntity struct {
-	*ecs.BasicEntity
-	*common.SpaceComponent
-	*common.MouseComponent
-	Line1, Line2, Line3, Line4 string
+	ecs.BasicEntity
+
+	Position *engo.Point
+	Name     string
+	Height   int
+
+	hideAfter  time.Duration
+	shownSince time.Time
+	hidden     bool
+
+	text []*Text
 }
 
 // HUDTextSystem prints the text to our HUD based on the current state of the game
@@ -36,48 +45,60 @@ type HUDTextSystem struct {
 	world *ecs.World
 	fnt   *common.Font
 
-	text1, text2, text3, text4 *Text
-
-	entities []HUDTextEntity
+	entities map[string]*HUDTextEntity
 }
 
-func (h *HUDTextSystem) SetText(text []string) {
-	h.text1.RenderComponent.Drawable = common.Text{
-		Font: h.fnt,
-		Text: text[0],
+func (self *HUDTextEntity) SetHidden(hide bool) {
+	if hide {
+		self.hideAfter = 0
+	} else {
+		self.shownSince = time.Now()
 	}
-	h.text2.RenderComponent.Drawable = common.Text{
-		Font: h.fnt,
-		Text: text[1],
+	self.hidden = hide
+	for i := 0; i < len(self.text); i++ {
+		self.text[i].RenderComponent.Hidden = self.hidden
 	}
-	h.text3.RenderComponent.Drawable = common.Text{
-		Font: h.fnt,
-		Text: text[2],
-	}
-	h.text4.RenderComponent.Drawable = common.Text{
-		Font: h.fnt,
-		Text: text[3],
-	}
+	log.Println("SetHidden", hide, self)
 }
 
-func (h *HUDTextSystem) InitText(lineNo int) *Text {
-	text := Text{BasicEntity: ecs.NewBasic()}
-	text.SetShader(common.TextHUDShader)
-	text.RenderComponent.Drawable = common.Text{
-		Font: h.fnt,
-		Text: "",
-	}
-	text.RenderComponent.SetZIndex(assets.HUDLayer)
-	text.SpaceComponent = common.SpaceComponent{
-		Position: engo.Point{X: assets.HUDMarginL, Y: engo.WindowHeight() - (assets.HoverTipHeight - float32(lineNo*assets.LineHeight))},
-	}
-	for _, system := range h.world.Systems() {
-		switch sys := system.(type) {
-		case *common.RenderSystem:
-			sys.Add(&text.BasicEntity, &text.RenderComponent, &text.SpaceComponent)
+func (h *HUDTextSystem) SetText(entityName string, lines []string, hideAfter time.Duration) {
+	entity := h.entities[entityName]
+
+	for i := 0; i < len(entity.text) && i < len(lines); i++ {
+		entity.text[i].RenderComponent.Drawable = common.Text{
+			Font: h.fnt,
+			Text: lines[i],
 		}
 	}
-	return &text
+	entity.SetHidden(false)
+	entity.hideAfter = hideAfter
+}
+
+func (h *HUDTextSystem) InitText(entityName string) {
+	entity := h.entities[entityName]
+
+	for i := 0; i < entity.Height; i++ {
+		text := Text{BasicEntity: ecs.NewBasic()}
+		text.SetShader(common.TextHUDShader)
+		text.RenderComponent.Drawable = common.Text{
+			Font: h.fnt,
+			Text: "",
+		}
+		text.RenderComponent.SetZIndex(assets.HUDLayer)
+		text.SpaceComponent = common.SpaceComponent{
+			Position: engo.Point{
+				X: entity.Position.X,
+				Y: entity.Position.Y + float32(i*assets.LineHeight),
+			},
+		}
+		for _, system := range h.world.Systems() {
+			switch sys := system.(type) {
+			case *common.RenderSystem:
+				sys.Add(&text.BasicEntity, &text.RenderComponent, &text.SpaceComponent)
+			}
+		}
+		entity.text = append(entity.text, &text)
+	}
 }
 
 // New is called when the system is added to the world.
@@ -93,78 +114,45 @@ func (h *HUDTextSystem) New(w *ecs.World) {
 	}
 	h.fnt.CreatePreloaded()
 
-	h.text1 = h.InitText(0)
-	h.text2 = h.InitText(1)
-	h.text3 = h.InitText(2)
-	h.text4 = h.InitText(3)
+	// Initialise all known text elements of the UI
+	h.entities = make(map[string]*HUDTextEntity)
+	h.Add("HoverInfo", assets.HUDMarginL, engo.WindowHeight()-assets.HoverInfoHeight, 4)
+	h.Add("EventMessage", assets.HUDMarginL, assets.HUDMarginT, 1)
 
-	engo.Mailbox.Listen(messages.InteractionMessageType, func(m engo.Message) {
-		msg, ok := m.(messages.InteractionMessage)
-		if !ok {
-			return
-		}
-		if msg.BasicEntity == nil {
-			h.text1.RenderComponent.Drawable = common.Text{
-				Font: h.fnt,
-				Text: "",
-			}
-			h.text2.RenderComponent.Drawable = common.Text{
-				Font: h.fnt,
-				Text: "",
-			}
-			h.text3.RenderComponent.Drawable = common.Text{
-				Font: h.fnt,
-				Text: "",
-			}
-			h.text4.RenderComponent.Drawable = common.Text{
-				Font: h.fnt,
-				Text: "",
-			}
-		}
-	})
+	// Messages set the texts of the text UI elements
+	engo.Mailbox.Listen(messages.HUDTextUpdateMessageType, h.HandleHUDTextUpdateMessage)
+}
 
-	engo.Mailbox.Listen(messages.HUDTextMessageType, func(m engo.Message) {
-		msg, ok := m.(messages.HUDTextMessage)
-		if !ok {
-			return
-		}
-		h.text1.RenderComponent.Drawable = common.Text{
-			Font: h.fnt,
-			Text: msg.Line1,
-		}
-		h.text2.RenderComponent.Drawable = common.Text{
-			Font: h.fnt,
-			Text: msg.Line2,
-		}
-		h.text3.RenderComponent.Drawable = common.Text{
-			Font: h.fnt,
-			Text: msg.Line3,
-		}
-		h.text4.RenderComponent.Drawable = common.Text{
-			Font: h.fnt,
-			Text: msg.Line4,
-		}
-	})
+func (h *HUDTextSystem) HandleHUDTextUpdateMessage(m engo.Message) {
+	msg, ok := m.(messages.HUDTextUpdateMessage)
+	if !ok {
+		return
+	}
+	h.SetText(msg.Name, msg.Lines, msg.HideAfter)
 }
 
 // Add adds an entity to the system
-func (h *HUDTextSystem) Add(b *ecs.BasicEntity, s *common.SpaceComponent, m *common.MouseComponent, l1, l2, l3, l4 string) {
-	h.entities = append(h.entities, HUDTextEntity{b, s, m, l1, l2, l3, l4})
+func (self *HUDTextSystem) Add(name string, x float32, y float32, h int) {
+	position := &engo.Point{X: x, Y: y}
+	entity := &HUDTextEntity{BasicEntity: ecs.NewBasic(), Position: position, Name: name, Height: h}
+	self.entities[entity.Name] = entity
+
+	self.InitText(name)
 }
 
 // Update is called each frame to update the system.
-func (h *HUDTextSystem) Update(dt float32) {}
+func (h *HUDTextSystem) Update(dt float32) {
+	for _, e := range h.entities {
+		if e.hideAfter > 0 && !e.hidden {
+			now := time.Now()
+			if now.Sub(e.shownSince) > e.hideAfter {
+				e.SetHidden(true)
+			}
+		}
+	}
+}
 
 // Remove takes an enitty out of the system.
 func (h *HUDTextSystem) Remove(basic ecs.BasicEntity) {
-	delete := -1
-	for index, e := range h.entities {
-		if e.BasicEntity.ID() == basic.ID() {
-			delete = index
-			break
-		}
-	}
-	if delete >= 0 {
-		h.entities = append(h.entities[:delete], h.entities[delete+1:]...)
-	}
+	// TODO Remove all `Text`s from all relevant systems
 }

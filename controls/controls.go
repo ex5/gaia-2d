@@ -151,11 +151,15 @@ func (self *ControlsSystem) HandleInteractMessage(m engo.Message) {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("%+v", entity)
 		if entity != nil {
-			engo.Mailbox.Dispatch(messages.HUDTextMessage{
-				Line1: fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-				Line2: fmt.Sprintf("%v", entity),
-				Line3: "<ControlsSystem>",
-				Line4: "",
+			lines := []string{
+				fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+				fmt.Sprintf("%v", entity),
+				"<ControlsSystem>",
+				"",
+			}
+			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+				Name:  "HoverInfo",
+				Lines: lines,
 			})
 		}
 	}

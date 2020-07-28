@@ -13,6 +13,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"time"
 	//"math"
 )
 
@@ -124,11 +125,15 @@ func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("World: %+v", entity)
 		if entity != nil {
-			engo.Mailbox.Dispatch(messages.HUDTextMessage{
-				Line1: fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-				Line2: fmt.Sprintf("%v", entity.Object),
-				Line3: fmt.Sprintf("%v", entity.AccessibleResource),
-				Line4: fmt.Sprintf("%v", entity.Resource),
+			lines := []string{
+				fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+				fmt.Sprintf("%v", entity.Object),
+				fmt.Sprintf("%v", entity.AccessibleResource),
+				fmt.Sprintf("%v", entity.Resource),
+			}
+			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+				Name:  "HoverInfo",
+				Lines: lines,
 			})
 		}
 	}
@@ -217,6 +222,14 @@ func (self *WorldTilesSystem) Save(filepath string) {
 		panic(err)
 	}
 	f1.Close()
+
+	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+		Name:      "EventMessage",
+		HideAfter: 3 * time.Second,
+		Lines: []string{
+			"Saved!",
+		},
+	})
 }
 
 func (self *WorldTilesSystem) LoadFromSaveFile(filepath string) {
