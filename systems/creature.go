@@ -109,7 +109,11 @@ func (self *CreatureSpawningSystem) Remove(e ecs.BasicEntity) {
 }
 
 func (self *CreatureSpawningSystem) UpdateSave(saveFile *data.SaveFile) {
-	saveFile.Creatures = self.entities
+	for _, e := range self.entities {
+		if e.Tile.Object.Type == "creature" {
+			saveFile.Creatures = append(saveFile.Creatures, e)
+		}
+	}
 }
 
 func (self *CreatureSpawningSystem) LoadSave(saveFile *data.SaveFile) {

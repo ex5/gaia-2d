@@ -187,7 +187,11 @@ func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
 }
 
 func (self *WorldTilesSystem) UpdateSave(saveFile *data.SaveFile) {
-	saveFile.Tiles = self.tiles
+	for _, t := range self.tiles {
+		if t.Object.Type == "tile" {
+			saveFile.Tiles = append(saveFile.Tiles, t)
+		}
+	}
 }
 
 func (self *WorldTilesSystem) LoadSave(saveFile *data.SaveFile) {
