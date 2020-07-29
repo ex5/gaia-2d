@@ -1,0 +1,20 @@
+{
+    "spritesheets": [
+        {
+            "id": 1,
+            "filepath": "tilemap/terrain-v7.png",
+            "animations": null
+        },
+        {
+            "id": 2,
+            "filepath": "textures/chick_32x32.png",
+            "animations": [
+                {"name": "feed", "frames": [4, 4, 5, 6, 7, 8, 9, 9]},
+                {"name": "walk_right", "frames": [4, 4, 0, 1, 2, 3, 4, 4, 4], "loop": true},
+                {"name": "walk_left", "frames": [9, 9, 10, 11, 12, 13, 9, 9], "loop": true},
+                {"name": "walk_down", "frames": [14, 15, 16, 17, 18, 19, 20], "loop": true},
+                {"name": "walk_up", "frames":   [21, 22, 23, 24, 25, 26, 27], "loop": true}
+            ]
+        }
+    ]
+}

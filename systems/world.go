@@ -1,103 +1,110 @@
 package systems
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
 	"gogame/controls"
+	"gogame/data"
 	"gogame/messages"
 	"gogame/util"
 	"log"
 	"math/rand"
-	"os"
-	"time"
-	//"math"
 )
-
-type Tile struct {
-	ecs.BasicEntity
-	common.RenderComponent
-	common.SpaceComponent
-	common.CollisionComponent
-	*common.MouseComponent
-	*common.Spritesheet
-
-	Layer float32
-	*assets.Object
-	*assets.AccessibleResource
-	*assets.Resource
-}
 
 type WorldTilesSystem struct {
 	world *ecs.World
-	tiles []*Tile // TODO entities
+	tiles []*data.Tile // TODO entities
 }
 
-func (self *WorldTilesSystem) Add(spritesheet *common.Spritesheet, spriteID int, position *engo.Point, layer float32, collisionComponent common.CollisionComponent) *Tile {
-	tile := &Tile{BasicEntity: ecs.NewBasic(), Spritesheet: spritesheet, Layer: layer}
-	tile.RenderComponent = common.RenderComponent{
-		Drawable: tile.Spritesheet.Cell(spriteID),
-		Scale:    engo.Point{1, 1},
-	}
-	tile.RenderComponent.SetZIndex(tile.Layer)
-	tile.SpaceComponent = common.SpaceComponent{
+func NewTile(objectID int, position *engo.Point, layer float32, collisionComponent *common.CollisionComponent) *data.Tile {
+	basic := ecs.NewBasic()
+	tile := &data.Tile{BasicEntity: &basic, Layer: layer, ObjectID: objectID}
+	tile.SpaceComponent = &common.SpaceComponent{
 		Position: *position,
 		Width:    float32(assets.SpriteWidth),
 		Height:   float32(assets.SpriteHeight),
 	}
 	tile.MouseComponent = &common.MouseComponent{Track: false}
 	tile.CollisionComponent = collisionComponent
+	return tile
+}
+
+func (self *WorldTilesSystem) Add(tile *data.Tile) {
+	if tile.BasicEntity == nil {
+		basic := ecs.NewBasic()
+		tile.BasicEntity = &basic
+	}
+	if tile.Object == nil {
+		tile.Object = assets.GetObjectById(tile.ObjectID)
+	}
+	if tile.Resource == nil {
+		tile.Resource = assets.GetResourceByID(tile.Object.ResourceID)
+	}
+	if tile.RenderComponent == nil {
+		tile.RenderComponent = &common.RenderComponent{
+			Drawable: tile.Object.Spritesheet.Cell(tile.Object.SpriteID),
+			Scale:    engo.Point{1, 1},
+		}
+		tile.RenderComponent.SetZIndex(tile.Layer)
+	}
+	if tile.AccessibleResource == nil {
+		tile.AccessibleResource = &data.AccessibleResource{tile.Object.ResourceID, tile.Object.Amount}
+	}
+	if tile.AnimationComponent == nil {
+		if tile.Object.Animations != nil && len(tile.Object.Animations) > 1 {
+			log.Printf("Adding animations to %+v\n", tile)
+			animationC := common.NewAnimationComponent(tile.Object.Spritesheet.Drawables(), 0.25)
+			tile.AnimationComponent = &animationC
+			tile.AnimationComponent.AddAnimations(tile.Object.Animations)
+			tile.AnimationComponent.AddDefaultAnimation(tile.Object.Animations[0])
+		}
+	}
 	self.tiles = append(self.tiles, tile)
 
 	// Add the tile to the various systems
 	for _, system := range self.world.Systems() {
 		switch sys := system.(type) {
 		case *common.RenderSystem:
-			sys.Add(&tile.BasicEntity, &tile.RenderComponent, &tile.SpaceComponent)
+			sys.Add(tile.BasicEntity, tile.RenderComponent, tile.SpaceComponent)
 		case *common.CollisionSystem:
-			sys.Add(&tile.BasicEntity, &tile.CollisionComponent, &tile.SpaceComponent)
+			sys.Add(tile.BasicEntity, tile.CollisionComponent, tile.SpaceComponent)
+		case *common.AnimationSystem:
+			if tile.AnimationComponent != nil {
+				sys.Add(tile.BasicEntity, tile.AnimationComponent, tile.RenderComponent)
+			}
 		case *controls.ControlsSystem:
-			sys.Add(&tile.BasicEntity, tile.MouseComponent, &tile.SpaceComponent, &tile.RenderComponent)
+			sys.Add(tile.BasicEntity, tile.MouseComponent, tile.SpaceComponent, tile.RenderComponent)
 		}
 	}
-	return tile
-}
-
-func (self *WorldTilesSystem) CreateFromSpriteSource(point *engo.Point, spriteSrc string, collisionComponent common.CollisionComponent) *Tile {
-	spritesheet := assets.GetSpritesheet(spriteSrc)
-	return self.Add(spritesheet, 0, point, 10, collisionComponent)
 }
 
 func (self *WorldTilesSystem) New(world *ecs.World) {
 	self.world = world
-	self.tiles = make([]*Tile, 0)
+	self.tiles = make([]*data.Tile, 0)
 
 	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
-	engo.Mailbox.Listen(messages.SaveMessageType, self.HandleSaveMessage)
 }
 
 func (self *WorldTilesSystem) Generate() {
 	mapSizeX, mapSizeY := 50, 50
-	ground := assets.GetObjectById(3) // grassland, default ground
+	groundID := 3 // grassland, default ground
 	// ground doesn't collide with anything
-	collisionC := common.CollisionComponent{Main: 0, Group: 0}
+	collisionC := &common.CollisionComponent{Main: 0, Group: 0}
 	for i := 0; i < mapSizeX; i++ {
 		for j := 0; j < mapSizeY; j++ {
 			position := util.ToPoint(i, j)
-			tile := self.Add(assets.FullSpriteSheet, ground.SpriteID, position, 0, collisionC)
-			tile.Object = ground
+			tile := NewTile(groundID, position, 0, collisionC)
+			self.Add(tile)
 
 			// Add a random vegetation tile
 			if rand.Int()%3 == 0 {
 				plant := assets.GetRandomObjectOfType("plant")
-				vtile := self.Add(assets.FullSpriteSheet, plant.SpriteID, position, 1, collisionC)
-				vtile.AccessibleResource = &assets.AccessibleResource{plant.ResourceID, plant.Amount}
-				vtile.Resource = assets.GetResourceByID(plant.ResourceID)
-				vtile.Object = plant
+				tile = NewTile(plant.ID, position, 1, collisionC)
+				self.Add(tile)
 			}
 
 		}
@@ -106,7 +113,7 @@ func (self *WorldTilesSystem) Generate() {
 	fmt.Printf("Max Z index of the terrain: %d\n", z_idx_max)
 }
 
-func (self *WorldTilesSystem) GetEntityByID(basicEntityID uint64) *Tile {
+func (self *WorldTilesSystem) GetEntityByID(basicEntityID uint64) *data.Tile {
 	for _, e := range self.tiles {
 		if e.BasicEntity.ID() == basicEntityID {
 			return e
@@ -139,15 +146,6 @@ func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 	}
 }
 
-func (self *WorldTilesSystem) HandleSaveMessage(m engo.Message) {
-	log.Printf("World.HandleSaveMessage: %+v", m)
-	msg, ok := m.(messages.SaveMessage)
-	if !ok {
-		return
-	}
-	self.Save(msg.Filepath)
-}
-
 func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
 	log.Printf("%+v", m)
 	msg, ok := m.(messages.ControlMessage)
@@ -159,16 +157,11 @@ func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
 			controlsSystem, ok := system.(*controls.ControlsSystem)
 			if ok {
 				x, y := util.ToGridPosition(controlsSystem.MouseTracker.MouseX, controlsSystem.MouseTracker.MouseY)
-				self.Add(assets.FullSpriteSheet, msg.SpriteID, &engo.Point{x, y}, 4, common.CollisionComponent{Main: 0, Group: 1})
+				tile := NewTile(5, &engo.Point{x, y}, 4, &common.CollisionComponent{Main: 0, Group: 1})
+				self.Add(tile)
 				break
 			}
 		}
-	} else if msg.Action == "SaveGame" {
-		// TODO the game should be paused first
-		self.Save(msg.Data)
-	} else if msg.Action == "WorldLoadSaveFile" {
-		// TODO the game should be paused first
-		self.LoadFromSaveFile(msg.Data)
 	} else if msg.Action == "WorldGenerate" {
 		// TODO the game should be paused first
 		self.Generate()
@@ -193,72 +186,13 @@ func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
 	}
 }
 
-// Saving-related functionality
-func (self *Tile) ToSavedTile() *assets.SavedTile {
-	var objectID int
-	if self.Object != nil {
-		objectID = self.Object.ID
-	}
-	return &assets.SavedTile{objectID, self.AccessibleResource, &self.SpaceComponent.Position, self.Layer, self.CollisionComponent}
+func (self *WorldTilesSystem) UpdateSave(saveFile *data.SaveFile) {
+	saveFile.Tiles = self.tiles
 }
 
-func (self *WorldTilesSystem) ToSavedTiles() *assets.SavedTiles {
-	result := &assets.SavedTiles{}
-	for _, v := range self.tiles {
-		result.Tiles = append(result.Tiles, v.ToSavedTile())
+func (self *WorldTilesSystem) LoadSave(saveFile *data.SaveFile) {
+	log.Printf("[WorldTilesSystem] Tiles in the save file: %d\n", len(saveFile.Tiles))
+	for _, t := range saveFile.Tiles {
+		self.Add(t)
 	}
-	return result
-}
-
-func (self *WorldTilesSystem) Save(filepath string) {
-	log.Println("Saving the world tiles")
-	f1, err := os.Create(filepath)
-	if err != nil {
-		panic(err)
-	}
-	enc := json.NewEncoder(f1)
-	err = enc.Encode(self.ToSavedTiles())
-	if err != nil {
-		panic(err)
-	}
-	f1.Close()
-
-	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-		Name:      "EventMessage",
-		HideAfter: 3 * time.Second,
-		Lines: []string{
-			fmt.Sprintf("Saved to %s", filepath),
-		},
-	})
-}
-
-func (self *WorldTilesSystem) LoadFromSaveFile(filepath string) {
-	f2, err := os.Open(filepath)
-	dec := json.NewDecoder(f2)
-	savedTiles := &assets.SavedTiles{}
-	err = dec.Decode(&savedTiles)
-	if err != nil {
-		panic(err)
-	}
-	f2.Close()
-
-	for _, savedTile := range savedTiles.Tiles {
-		log.Println(savedTile, savedTile.ObjectID, savedTile.Position, savedTile.Layer)
-		object := assets.GetObjectById(savedTile.ObjectID)
-		log.Println(object)
-		vtile := self.Add(assets.FullSpriteSheet, object.SpriteID, savedTile.Position, savedTile.Layer, savedTile.CollisionComponent)
-		vtile.AccessibleResource = savedTile.AccessibleResource
-		vtile.Resource = assets.GetResourceByID(object.ResourceID)
-		vtile.Object = object
-	}
-
-	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-		Name:      "EventMessage",
-		HideAfter: 3 * time.Second,
-		Lines: []string{
-			fmt.Sprintf("Loaded %s", filepath),
-		},
-	})
-	z_idx_max := 3.0
-	fmt.Printf("Max Z index of the terrain: %d\n", z_idx_max)
 }

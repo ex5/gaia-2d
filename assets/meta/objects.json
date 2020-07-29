@@ -2,24 +2,48 @@
     "objects": [
         {
             "id": 1,
+            "type": "tile",
             "sprite_id": 1738,
+            "spritesheet_id": 1,
             "name": "A patch of grass",
             "resource_id": 1,
             "amount": 50
         },
         {
             "id": 2,
+            "type": "tile",
             "sprite_id": 1706,
+            "spritesheet_id": 1,
             "name": "Grassy area",
             "resource_id": 1,
             "amount": 200
         },
         {
             "id": 3,
+            "type": "tile",
             "sprite_id": 1127,
+            "spritesheet_id": 1,
             "name": "Grassland",
             "resource_id": 1,
             "amount": 0
+        },
+        {
+            "id": 4,
+            "type": "creature",
+            "sprite_id": 0,
+            "spritesheet_id": 2,
+            "name": "Animal",
+            "resource_id": 2,
+            "amount": 0
+        },
+        {
+            "id": 5,
+            "type": "tile",
+            "sprite_id": 1664,
+            "spritesheet_id": 1,
+            "name": "Large stone",
+            "resource_id": 3,
+            "amount": 100
         }
     ]
 }

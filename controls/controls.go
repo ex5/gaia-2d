@@ -5,6 +5,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
+	"gogame/assets"
 	"gogame/messages"
 	"log"
 )
@@ -62,14 +63,13 @@ func (self *ControlsSystem) Update(dt float32) {
 	}
 	if engo.Input.Button("AddCreature").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
-			Action: "add_creature",
-			Data:   "textures/chick_32x32.png",
+			Action:     "add_creature",
+			CreatureID: 1,
 		})
 	}
 	if engo.Input.Button("QuickSave").JustPressed() {
-		engo.Mailbox.Dispatch(messages.ControlMessage{
-			Action: "SaveGame",
-			Data:   "quick.save",
+		engo.Mailbox.Dispatch(messages.SaveMessage{
+			Filepath: assets.WorkDir + "/quick.save",
 		})
 	}
 	if engo.Input.Button("NewWorld").JustPressed() {
@@ -81,13 +81,13 @@ func (self *ControlsSystem) Update(dt float32) {
 	if engo.Input.Button("QuickLoad").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "ReloadWorld",
-			Data:   "quick.save",
+			Data:   assets.WorkDir + "/quick.save",
 		})
 	}
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action:   "add_object",
-			SpriteID: 1664,
+			ObjectID: 5,
 		})
 	}
 
@@ -96,7 +96,7 @@ func (self *ControlsSystem) Update(dt float32) {
 		if entity.MouseComponent.Hovered || entity.MouseComponent.Enter {
 			newHoveredEntity = entity
 		}
-		if entity.MouseComponent.Leave && self.hoveredEntity.ID() == entity.ID() {
+		if entity.MouseComponent.Leave && self.hoveredEntity != nil && self.hoveredEntity.ID() == entity.BasicEntity.ID() {
 			self.hoveredEntity = nil
 		}
 	}
@@ -163,14 +163,4 @@ func (self *ControlsSystem) HandleInteractMessage(m engo.Message) {
 			})
 		}
 	}
-}
-
-/*
-type SavedGame struct {
-	tiles *assets.SavedTiles
-	objects *SavedObjects
-}
-*/
-
-func (self *ControlsSystem) SaveGame(filepath string) {
 }

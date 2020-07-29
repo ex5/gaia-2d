@@ -1,0 +1,16 @@
+{
+    "resources": [
+        {
+            "id": 1,
+            "type": "plant"
+        },
+        {
+            "id": 2,
+            "type": "meat"
+        },
+        {
+            "id": 3,
+            "type": "stone"
+        }
+    ]
+}

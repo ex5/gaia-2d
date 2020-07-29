@@ -6,53 +6,14 @@ import (
 
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"gogame/data"
 	"golang.org/x/image/font/gofont/gosmallcaps"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
 )
-
-// Description of a resource
-type Resource struct {
-	ID   int    `json:"id"`
-	Type string `json:"type"`
-}
-
-// Mutable resource, e.g. plant matter available at a specific tile
-type AccessibleResource struct {
-	ResourceID int     `json:"resource_id"`
-	Amount     float32 `json:"amount"`
-}
-
-type Object struct {
-	ID         int     `json:"id"`
-	SpriteID   int     `json:"sprite_id"`
-	Name       string  `json:"name"`
-	ResourceID int     `json:"resource_id"`
-	Amount     float32 `json:"amount"`
-}
-
-type Objects struct {
-	Objects []*Object `json:"objects"`
-}
-
-type Resources struct {
-	Resources []*Resource `json:"resource"`
-}
-
-// Structures for the save file
-type SavedTile struct {
-	ObjectID           int                       `json:"object_id"`
-	AccessibleResource *AccessibleResource       `json:"accessible_resource"`
-	Position           *engo.Point               `json:"position"`
-	Layer              float32                   `json:"layer"`
-	CollisionComponent common.CollisionComponent `json:"collision_component"`
-}
-
-type SavedTiles struct {
-	Tiles []*SavedTile `json:"tiles"`
-}
 
 var (
 	SpriteWidth  = 32
@@ -66,33 +27,42 @@ var (
 	HUDMarginL      float32 = 20
 	HUDMarginT      float32 = 20
 
-	PreloadList = []string{
-		"textures/chick_32x32.png",
-		"tilemap/terrain-v7.png",
-	}
-	Spritesheets map[string]*common.Spritesheet
+	creatures    *data.Creatures
+	objects      *data.Objects
+	resources    *data.Resources
+	spritesheets *data.Spritesheets
 
-	FullSpriteSheet *common.Spritesheet
-	objects         *Objects
-	resources       *Resources
+	CreatureById    map[int]*data.Creature
+	ObjectById      map[int]*data.Object
+	ResourceById    map[int]*data.Resource
+	ResourceByType  map[string]*data.Resource
+	SpritesheetById map[int]*data.Spritesheet
 
-	ResourceById   map[int]*Resource
-	ResourceByType map[string]*Resource
-
-	ObjectById map[int]*Object
+	WorkDir string
 )
 
+func readJSON(path string) []byte {
+	jsonFile, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer jsonFile.Close()
+	byteValue, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		panic(err)
+	}
+	return byteValue
+}
+
 func loadSpritesheets() {
-	// Initialise "cache" of known spritesheets
-	Spritesheets = make(map[string]*common.Spritesheet)
-	for _, spriteSrc := range PreloadList {
-		_, exists := Spritesheets[spriteSrc]
-		if !exists {
-			log.Printf("Loading a new spritesheet from %s\n", spriteSrc)
-			Spritesheets[spriteSrc] = common.NewSpritesheetFromFile(spriteSrc, SpriteWidth, SpriteHeight)
-		} else {
-			log.Printf("%s already loaded\n", spriteSrc)
+	log.Println(spritesheets)
+
+	spritesheets.Loaded = make(map[int]*common.Spritesheet)
+	for _, sheet := range spritesheets.Spritesheets {
+		if err := engo.Files.Load(sheet.FilePath); err != nil {
+			panic(err)
 		}
+		spritesheets.Loaded[sheet.ID] = common.NewSpritesheetFromFile(sheet.FilePath, SpriteWidth, SpriteHeight)
 	}
 }
 
@@ -101,69 +71,80 @@ func InitAssets() {
 	if err != nil {
 		panic(err)
 	}
-	engo.Files.SetRoot(path + "/assets")
+	WorkDir = path
+
+	engo.Files.SetRoot(WorkDir + "/assets")
 	log.Println(engo.Files.GetRoot())
-	if err := engo.Files.Load(PreloadList...); err != nil {
-		panic(err)
-	}
 
 	// Load the font
 	engo.Files.LoadReaderData(FontURL, bytes.NewReader(gosmallcaps.TTF))
 
 	// Load the spritesheets
+	byteValue := readJSON("assets/meta/spritesheets.json")
+	json.Unmarshal(byteValue, &spritesheets)
 	loadSpritesheets()
-	FullSpriteSheet = GetSpritesheet("tilemap/terrain-v7.png")
 
 	// Load objects
-	objectsJsonFile, _ := os.Open("assets/meta/objects.json")
-	defer objectsJsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(objectsJsonFile)
+	byteValue = readJSON("assets/meta/objects.json")
 	json.Unmarshal(byteValue, &objects)
 
 	// Load other related metadata
-	metaJsonFile, _ := os.Open("assets/meta/resource.json")
-	defer metaJsonFile.Close()
-	byteValue, _ = ioutil.ReadAll(metaJsonFile)
+	byteValue = readJSON("assets/meta/resources.json")
 	json.Unmarshal(byteValue, &resources)
 
+	// Load creatures
+	byteValue = readJSON("assets/meta/creatures.json")
+	json.Unmarshal(byteValue, &creatures)
+
 	// Prepare hashes for ease of access to loaded assets
-	ResourceById = make(map[int]*Resource)
+	SpritesheetById = make(map[int]*data.Spritesheet)
+	for _, s := range spritesheets.Spritesheets {
+		SpritesheetById[s.ID] = s
+	}
+	ResourceById = make(map[int]*data.Resource)
+	ResourceByType = make(map[string]*data.Resource)
 	for _, r := range resources.Resources {
 		ResourceById[r.ID] = r
-	}
-	ResourceByType = make(map[string]*Resource)
-	for _, r := range resources.Resources {
 		ResourceByType[r.Type] = r
 	}
-	ObjectById = make(map[int]*Object)
+	ObjectById = make(map[int]*data.Object)
 	for _, o := range objects.Objects {
 		ObjectById[o.ID] = o
+		o.Spritesheet = spritesheets.Loaded[o.SpritesheetID]
+		o.Animations = SpritesheetById[o.SpritesheetID].Animations
+	}
+	CreatureById = make(map[int]*data.Creature)
+	for _, c := range creatures.Creatures {
+		CreatureById[c.ID] = c
 	}
 }
 
-func GetResourceByID(resourceID int) *Resource {
-	if resource, ok := ResourceById[resourceID]; ok {
+func GetResourceByID(resourceID int) *data.Resource {
+	resource, ok := ResourceById[resourceID]
+	if ok {
 		return resource
 	}
-	return nil
+	panic(fmt.Sprintf("Resource '%d' could not be found", resourceID))
 }
 
-func GetResourceByType(resourceType string) *Resource {
-	if resource, ok := ResourceByType[resourceType]; ok {
+func GetResourceByType(resourceType string) *data.Resource {
+	resource, ok := ResourceByType[resourceType]
+	if ok {
 		return resource
 	}
-	return nil
+	panic(fmt.Sprintf("Resource '%s' could not be found", resourceType))
 }
 
-func GetObjectById(objectID int) *Object {
-	if object, ok := ObjectById[objectID]; ok {
+func GetObjectById(objectID int) *data.Object {
+	object, ok := ObjectById[objectID]
+	if ok {
 		return object
 	}
-	return nil
+	panic(fmt.Sprintf("Object '%d' could not be found", objectID))
 }
 
-func GetObjectsByType(resourceType string) []*Object {
-	var result []*Object
+func GetObjectsByType(resourceType string) []*data.Object {
+	var result []*data.Object
 	for _, v := range objects.Objects {
 		if GetResourceByID(v.ResourceID).Type == resourceType {
 			result = append(result, v)
@@ -172,15 +153,23 @@ func GetObjectsByType(resourceType string) []*Object {
 	return result
 }
 
-func GetRandomObjectOfType(resourceType string) *Object {
+func GetRandomObjectOfType(resourceType string) *data.Object {
 	objects := GetObjectsByType(resourceType)
 	return objects[rand.Intn(len(objects))]
 }
 
-func GetSpritesheet(spriteSrc string) *common.Spritesheet {
-	_, exists := Spritesheets[spriteSrc]
-	if !exists {
-		panic("Spritesheet does not appear to be loaded")
+func GetSpritesheetById(spritesheetID int) *common.Spritesheet {
+	sheet, ok := spritesheets.Loaded[spritesheetID]
+	if ok {
+		return sheet
 	}
-	return Spritesheets[spriteSrc]
+	panic(fmt.Sprintf("Spritesheet '%d' does not appear to be loaded", spritesheetID))
+}
+
+func GetCreatureById(creatureID int) *data.Creature {
+	creature, ok := CreatureById[creatureID]
+	if ok {
+		return creature
+	}
+	panic(fmt.Sprintf("Unknown creature '%d'", creatureID))
 }

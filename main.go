@@ -7,6 +7,7 @@ import (
 	"gogame/assets"
 	"gogame/controls"
 	"gogame/messages"
+	"gogame/save"
 	"gogame/systems"
 	"image/color"
 	"log"
@@ -71,6 +72,22 @@ func (self *myScene) Setup(u engo.Updater) {
 	// Creatures
 	world.AddSystem(&systems.CreatureSpawningSystem{})
 
+	engo.Mailbox.Listen(messages.SaveMessageType, func(m engo.Message) {
+		log.Printf("%+v", m)
+		msg, ok := m.(messages.SaveMessage)
+		if !ok {
+			return
+		}
+		save.HandleSaveMessage(world, msg.Filepath)
+	})
+	engo.Mailbox.Listen(messages.LoadMessageType, func(m engo.Message) {
+		log.Printf("%+v", m)
+		msg, ok := m.(messages.LoadMessage)
+		if !ok {
+			return
+		}
+		save.HandleLoadMessage(world, msg.Filepath)
+	})
 	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)
 		msg, ok := m.(messages.ControlMessage)
@@ -85,9 +102,8 @@ func (self *myScene) Setup(u engo.Updater) {
 			newScene := &myScene{}
 			engo.SetScene(newScene, true)
 			if msg.Data != "" {
-				engo.Mailbox.Dispatch(messages.ControlMessage{
-					Action: "WorldLoadSaveFile",
-					Data:   msg.Data,
+				engo.Mailbox.Dispatch(messages.LoadMessage{
+					Filepath: msg.Data,
 				})
 			} else {
 				engo.Mailbox.Dispatch(messages.ControlMessage{

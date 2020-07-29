@@ -9,11 +9,13 @@ import (
 const ControlMessageType string = "ControlMessage"
 const InteractionMessageType string = "InteractionMessage"
 const SaveMessageType string = "SaveMessage"
+const LoadMessageType string = "LoadMessage"
 
 type ControlMessage struct {
-	Action   string
-	Data     string
-	SpriteID int
+	Action        string
+	Data          string
+	ObjectID      int
+	CreatureID    int
 }
 
 type InteractionMessage struct {
@@ -22,6 +24,10 @@ type InteractionMessage struct {
 }
 
 type SaveMessage struct {
+	Filepath string
+}
+
+type LoadMessage struct {
 	Filepath string
 }
 
@@ -35,4 +41,8 @@ func (InteractionMessage) Type() string {
 
 func (SaveMessage) Type() string {
 	return SaveMessageType
+}
+
+func (LoadMessage) Type() string {
+	return LoadMessageType
 }

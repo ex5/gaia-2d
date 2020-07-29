@@ -1,0 +1,18 @@
+{
+    "creatures": [
+        {
+            "id": 1,
+            "object_id": 4,
+            "is_alive": true,
+            "name": "Chicken",
+            "subspecies": "Gallus gallus domesticus",
+            "color": "white",
+            "min_food": 75,
+            "max_food": 300,
+            "food": 75,
+            "min_sleep": 4,
+            "max_sleep": 16,
+            "sleep": 4
+        }
+    ]
+}
