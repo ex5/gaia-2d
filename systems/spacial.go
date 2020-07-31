@@ -48,7 +48,9 @@ func (self *SpacialSystem) HandleSpacialRequestMessage(m engo.Message) {
 	}
 	foundEntities := self.Query(msg.Aabb, msg.Filter)
 	engo.Mailbox.Dispatch(messages.SpacialResponseMessage{
+		Aabb:     msg.Aabb,
 		EntityID: msg.EntityID,
+		Filter:   msg.Filter,
 		Result:   foundEntities,
 	})
 }

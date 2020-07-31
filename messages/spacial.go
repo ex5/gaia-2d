@@ -18,6 +18,8 @@ type SpacialResponseMessage struct {
 	EntityID      uint64
 	EventID       uint64
 	BasicEntityID int
+	Aabb          engo.AABB
+	Filter        func(engo.AABBer) bool
 	Result        []engo.AABBer
 }
 

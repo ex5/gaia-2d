@@ -71,13 +71,15 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 // in seconds since the last frame
 func (self *CreatureSpawningSystem) Update(dt float32) {
 	for _, entity := range self.entities {
+		entity.Update(dt)
+
 		if self.dtFullSeconds > 1 {
-			entity.Update(self.dtFullSeconds)
+			entity.UpdateActivity(self.dtFullSeconds)
 			self.dtFullSeconds = 0
 		}
+		self.dtFullSeconds += dt
 		// TODO might be the good place to implement speed of in-game time
 		// TODO and the PauseSystem
-		self.dtFullSeconds += dt
 	}
 }
 
@@ -157,7 +159,7 @@ func (self *CreatureSpawningSystem) HandleCreatureHoveredMessage(m engo.Message)
 	entity := self.Get(msg.EntityID)
 	lines := []string{
 		fmt.Sprintf("%s, %s", entity.Name, entity.Subspecies),
-		fmt.Sprintf("%v", entity.Needs),
+		fmt.Sprintf("%s", entity.CurrentNeeds()),
 		fmt.Sprintf("%s", entity.Activity),
 		fmt.Sprintf("%v", entity),
 	}
