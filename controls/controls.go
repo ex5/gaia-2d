@@ -119,14 +119,6 @@ func (self *ControlsSystem) Remove(e ecs.BasicEntity) {
 			break
 		}
 	}
-	// Also remove from whichever other systems this system has added the entity to
-	for _, system := range self.world.Systems() {
-		switch sys := system.(type) {
-		case *common.MouseSystem:
-			sys.Remove(e)
-			break
-		}
-	}
 	if delete >= 0 {
 		self.entities = append(self.entities[:delete], self.entities[delete+1:]...)
 	}

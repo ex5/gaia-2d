@@ -99,10 +99,6 @@ func (self *CreatureSpawningSystem) Remove(e ecs.BasicEntity) {
 			delete = index
 		}
 	}
-	// Also remove from whichever other systems this system might have added the entity to
-	for _, system := range self.world.Systems() {
-		system.Remove(e)
-	}
 	if delete >= 0 {
 		self.entities = append(self.entities[:delete], self.entities[delete+1:]...)
 	}
