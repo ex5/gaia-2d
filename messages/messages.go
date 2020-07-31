@@ -10,12 +10,14 @@ const ControlMessageType string = "ControlMessage"
 const InteractionMessageType string = "InteractionMessage"
 const SaveMessageType string = "SaveMessage"
 const LoadMessageType string = "LoadMessage"
+const TileRemoveMessageType string = "TileRemoveMessage"
+const CreatureHoveredMessageType string = "CreatureHoveredMessage"
 
 type ControlMessage struct {
-	Action        string
-	Data          string
-	ObjectID      int
-	CreatureID    int
+	Action     string
+	Data       string
+	ObjectID   int
+	CreatureID int
 }
 
 type InteractionMessage struct {
@@ -29,6 +31,14 @@ type SaveMessage struct {
 
 type LoadMessage struct {
 	Filepath string
+}
+
+type TileRemoveMessage struct {
+	Entity *ecs.BasicEntity
+}
+
+type CreatureHoveredMessage struct {
+	EntityID uint64
 }
 
 func (ControlMessage) Type() string {
@@ -45,4 +55,12 @@ func (SaveMessage) Type() string {
 
 func (LoadMessage) Type() string {
 	return LoadMessageType
+}
+
+func (TileRemoveMessage) Type() string {
+	return TileRemoveMessageType
+}
+
+func (CreatureHoveredMessage) Type() string {
+	return CreatureHoveredMessageType
 }

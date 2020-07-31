@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"gogame/config"
 	"gogame/data"
 	"golang.org/x/image/font/gofont/gosmallcaps"
 	"io/ioutil"
@@ -16,17 +17,6 @@ import (
 )
 
 var (
-	SpriteWidth  = 32
-	SpriteHeight = 32
-	// UI
-	LineHeight              = 20
-	FontURL                 = "fonts/arcade_n.ttf"
-	FontSize        float64 = 14
-	HoverInfoHeight float32 = 200
-	HUDLayer        float32 = 1001
-	HUDMarginL      float32 = 20
-	HUDMarginT      float32 = 20
-
 	creatures    *data.Creatures
 	objects      *data.Objects
 	resources    *data.Resources
@@ -62,7 +52,7 @@ func loadSpritesheets() {
 		if err := engo.Files.Load(sheet.FilePath); err != nil {
 			panic(err)
 		}
-		spritesheets.Loaded[sheet.ID] = common.NewSpritesheetFromFile(sheet.FilePath, SpriteWidth, SpriteHeight)
+		spritesheets.Loaded[sheet.ID] = common.NewSpritesheetFromFile(sheet.FilePath, config.SpriteWidth, config.SpriteHeight)
 	}
 }
 
@@ -77,7 +67,7 @@ func InitAssets() {
 	log.Println(engo.Files.GetRoot())
 
 	// Load the font
-	engo.Files.LoadReaderData(FontURL, bytes.NewReader(gosmallcaps.TTF))
+	engo.Files.LoadReaderData(config.FontURL, bytes.NewReader(gosmallcaps.TTF))
 
 	// Load the spritesheets
 	byteValue := readJSON("assets/meta/spritesheets.json")

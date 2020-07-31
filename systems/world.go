@@ -6,6 +6,7 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
+	"gogame/config"
 	"gogame/controls"
 	"gogame/data"
 	"gogame/messages"
@@ -24,8 +25,8 @@ func NewTile(objectID int, position *engo.Point, layer float32, collisionCompone
 	tile := &data.Tile{BasicEntity: &basic, Layer: layer, ObjectID: objectID}
 	tile.SpaceComponent = &common.SpaceComponent{
 		Position: *position,
-		Width:    float32(assets.SpriteWidth),
-		Height:   float32(assets.SpriteHeight),
+		Width:    float32(config.SpriteWidth),
+		Height:   float32(config.SpriteHeight),
 	}
 	tile.MouseComponent = &common.MouseComponent{Track: false}
 	tile.CollisionComponent = collisionComponent
@@ -40,7 +41,7 @@ func (self *WorldTilesSystem) Add(tile *data.Tile) {
 	if tile.Object == nil {
 		tile.Object = assets.GetObjectById(tile.ObjectID)
 	}
-	if tile.Resource == nil {
+	if tile.Resource == nil && tile.Object.ResourceID != 0 {
 		tile.Resource = assets.GetResourceByID(tile.Object.ResourceID)
 	}
 	if tile.RenderComponent == nil {
@@ -77,6 +78,8 @@ func (self *WorldTilesSystem) Add(tile *data.Tile) {
 			}
 		case *controls.ControlsSystem:
 			sys.Add(tile.BasicEntity, tile.MouseComponent, tile.SpaceComponent, tile.RenderComponent)
+		case *SpacialSystem:
+			sys.Add(tile)
 		}
 	}
 }
@@ -87,6 +90,7 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 
 	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
+	engo.Mailbox.Listen(messages.TileRemoveMessageType, self.HandleTileRemoveMessage)
 }
 
 func (self *WorldTilesSystem) Generate() {
@@ -132,16 +136,23 @@ func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("World: %+v", entity)
 		if entity != nil {
-			lines := []string{
-				fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-				fmt.Sprintf("%v", entity.Object),
-				fmt.Sprintf("%v", entity.AccessibleResource),
-				fmt.Sprintf("%v", entity.Resource),
+			if entity.Object.Type == "creature" {
+				engo.Mailbox.Dispatch(messages.CreatureHoveredMessage{
+					EntityID: entity.BasicEntity.ID(),
+				})
+			} else {
+				// FIXME must be a better way than this?
+				lines := []string{
+					fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+					fmt.Sprintf("%v", entity.Object),
+					fmt.Sprintf("%v", entity.AccessibleResource),
+					fmt.Sprintf("%v", entity.Resource),
+				}
+				engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+					Name:  "HoverInfo",
+					Lines: lines,
+				})
 			}
-			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name:  "HoverInfo",
-				Lines: lines,
-			})
 		}
 	}
 }
@@ -168,7 +179,16 @@ func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
 	}
 }
 
-func (*WorldTilesSystem) Update(dt float32) {}
+func (self *WorldTilesSystem) HandleTileRemoveMessage(m engo.Message) {
+	//log.Printf("%+v", m)
+	msg, ok := m.(messages.TileRemoveMessage)
+	if !ok {
+		return
+	}
+	self.world.RemoveEntity(*msg.Entity)
+}
+
+func (self *WorldTilesSystem) Update(dt float32) {}
 
 func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
 	delete := -1
@@ -176,10 +196,6 @@ func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
 		if entity.BasicEntity.ID() == e.ID() {
 			delete = index
 		}
-	}
-	// Also remove from whichever other systems this system might have added the entity to
-	for _, system := range self.world.Systems() {
-		system.Remove(e)
 	}
 	if delete >= 0 {
 		self.tiles = append(self.tiles[:delete], self.tiles[delete+1:]...)

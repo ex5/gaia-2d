@@ -6,6 +6,8 @@ github.com/EngoEngine/engo v1.0.5 h1:uUS+ePuY0jfrdgsiu9DksgIXutajbRxJotguHjyhblE
 github.com/EngoEngine/engo v1.0.5/go.mod h1:jYnT3CutNgI034WhhzsSo0oXjcFoJW4o22CCfTd92wE=
 github.com/EngoEngine/gl v1.0.10 h1:Np2JJRsGSxI2R8lPKqk+fPV5eBb/mJA5Iq2gGSbKEng=
 github.com/EngoEngine/gl v1.0.10/go.mod h1:8f1reqqWMIXn6FSdcjwo6ayoZfrEqiv/0ulVHb4LGf4=
+github.com/EngoEngine/gl v1.0.11 h1:e0WdnP19ElyMjFVm2eXQ9rVIdxEl9v1u99T7by/xTPM=
+github.com/EngoEngine/gl v1.0.11/go.mod h1:8f1reqqWMIXn6FSdcjwo6ayoZfrEqiv/0ulVHb4LGf4=
 github.com/EngoEngine/math v1.0.4 h1:ejDfSg48ynB9T6btiu9EHjZmpQgW/zHf3IeC7SqXXv8=
 github.com/EngoEngine/math v1.0.4/go.mod h1:d8SnfwiaImse0lB3JuR91B2CShZmMxaTWaWZ/ZxDxAU=
 github.com/Noofbiz/sdlMojaveFix v0.0.1 h1:Vz4HSG7QQ5gkOWeZsSUFCGJAvMoRUHloTwF80lF0a9M=
@@ -55,6 +57,8 @@ github.com/srwiley/rasterx v0.0.0-20200120212402-85cb7272f5e9 h1:m59mIOBO4kfcNCE
 github.com/srwiley/rasterx v0.0.0-20200120212402-85cb7272f5e9/go.mod h1:mvWM0+15UqyrFKqdRjY6LuAVJR0HOVhJlEgZ5JWtSWU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
+github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6 h1:TtyC78WMafNW8QFfv3TeP3yWNDG+uxNkk9vOrnDu6JA=
+github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6/go.mod h1:h8272+G2omSmi30fBXiZDMkmHuOgonplfKIKjQWzlfs=
 github.com/veandco/go-sdl2 v0.4.4 h1:coOJGftOdvNvGoUIZmm4XD+ZRQF4mg9ZVHmH3/42zFQ=
 github.com/veandco/go-sdl2 v0.4.4/go.mod h1:FB+kTpX9YTE+urhYiClnRzpOXbiWgaU3+5F2AB78DPg=
 github.com/vulkan-go/glfw v0.0.0-20190520160600-32f33e359ff2 h1:jPnSXM1EM+6J1MbKbUZvQWkuS6Z9lPWRxTHn1NPsyNY=

@@ -59,6 +59,9 @@ func (self *myScene) Setup(u engo.Updater) {
 	engo.Input.RegisterButton("QuickLoad", engo.KeyF6)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
 
+	// Spacial (quadtree, pathfinding etc)
+	world.AddSystem(&systems.SpacialSystem{})
+
 	// Controls
 	world.AddSystem(&controls.ControlsSystem{})
 

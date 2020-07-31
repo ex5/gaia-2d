@@ -6,7 +6,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
-	"gogame/assets"
+	"gogame/config"
 	"gogame/messages"
 	"log"
 	"time"
@@ -84,11 +84,11 @@ func (h *HUDTextSystem) InitText(entityName string) {
 			Font: h.fnt,
 			Text: "",
 		}
-		text.RenderComponent.SetZIndex(assets.HUDLayer)
+		text.RenderComponent.SetZIndex(config.HUDLayer)
 		text.SpaceComponent = common.SpaceComponent{
 			Position: engo.Point{
 				X: entity.Position.X,
-				Y: entity.Position.Y + float32(i*assets.LineHeight),
+				Y: entity.Position.Y + float32(i*config.LineHeight),
 			},
 		}
 		for _, system := range h.world.Systems() {
@@ -107,17 +107,17 @@ func (h *HUDTextSystem) InitText(entityName string) {
 func (h *HUDTextSystem) New(w *ecs.World) {
 	h.world = w
 	h.fnt = &common.Font{
-		URL:  assets.FontURL,
+		URL:  config.FontURL,
 		FG:   color.White,
 		BG:   color.Black,
-		Size: assets.FontSize,
+		Size: config.FontSize,
 	}
 	h.fnt.CreatePreloaded()
 
 	// Initialise all known text elements of the UI
 	h.entities = make(map[string]*HUDTextEntity)
-	h.Add("HoverInfo", assets.HUDMarginL, engo.WindowHeight()-assets.HoverInfoHeight, 4)
-	h.Add("EventMessage", assets.HUDMarginL, assets.HUDMarginT, 1)
+	h.Add("HoverInfo", config.HUDMarginL, engo.WindowHeight()-config.HoverInfoHeight, 8)
+	h.Add("EventMessage", config.HUDMarginL, config.HUDMarginT, 1)
 
 	// Messages set the texts of the text UI elements
 	engo.Mailbox.Listen(messages.HUDTextUpdateMessageType, h.HandleHUDTextUpdateMessage)
