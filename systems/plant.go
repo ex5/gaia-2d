@@ -12,9 +12,8 @@ import (
 )
 
 type PlantSpawningSystem struct {
-	world         *ecs.World
-	dtFullSeconds float32
-	entities      []*plants.Plant
+	world    *ecs.World
+	entities []*plants.Plant
 }
 
 func NewPlant(plantID int, position *engo.Point) *plants.Plant {
@@ -46,21 +45,12 @@ func (self *PlantSpawningSystem) New(w *ecs.World) {
 
 	engo.Mailbox.Listen(messages.NewPlantMessageType, self.HandleNewPlantMessage)
 	engo.Mailbox.Listen(messages.PlantHoveredMessageType, self.HandlePlantHoveredMessage)
+	engo.Mailbox.Listen(messages.TimeSecondPassedMessageType, self.HandleTimeSecondPassedMessage)
 }
 
 // Update is ran every frame, with `dt` being the time
 // in seconds since the last frame
-func (self *PlantSpawningSystem) Update(dt float32) {
-	for _, entity := range self.entities {
-		if self.dtFullSeconds > 1 {
-			entity.UpdateActivity(self.dtFullSeconds)
-		}
-	}
-	if self.dtFullSeconds > 1 {
-		self.dtFullSeconds = 0
-	}
-	self.dtFullSeconds += dt
-}
+func (self *PlantSpawningSystem) Update(dt float32) {}
 
 // Remove is called whenever an Plant is removed from the World, in order to remove it from this sytem as well
 func (self *PlantSpawningSystem) Remove(e ecs.BasicEntity) {
@@ -107,6 +97,16 @@ func (self *PlantSpawningSystem) HandlePlantHoveredMessage(m engo.Message) {
 		Name:    "HoverInfo",
 		GetText: entity.GetTextStatus,
 	})
+}
+
+func (self *PlantSpawningSystem) HandleTimeSecondPassedMessage(m engo.Message) {
+	msg, ok := m.(messages.TimeSecondPassedMessage)
+	if !ok {
+		return
+	}
+	for _, e := range self.entities {
+		e.Update(msg.Time)
+	}
 }
 
 func (self *PlantSpawningSystem) UpdateSave(saveFile *save.SaveFile) {

@@ -2,7 +2,6 @@ package systems
 
 import (
 	"fmt"
-	"time"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -13,6 +12,7 @@ import (
 	"gogame/save"
 	"gogame/util"
 	"log"
+	"time"
 )
 
 type CreatureMouseTracker struct {
@@ -21,10 +21,9 @@ type CreatureMouseTracker struct {
 }
 
 type CreatureSpawningSystem struct {
-	world         *ecs.World
-	mouseTracker  CreatureMouseTracker
-	dtFullSeconds float32
-	entities      []*data.Creature
+	world        *ecs.World
+	mouseTracker CreatureMouseTracker
+	entities     []*data.Creature
 }
 
 func NewCreature(creatureID int, position *engo.Point) *data.Creature {
@@ -67,6 +66,7 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
 	engo.Mailbox.Listen(messages.SpacialResponseMessageType, self.HandleSpacialResponseMessage)
 	engo.Mailbox.Listen(messages.CreatureHoveredMessageType, self.HandleCreatureHoveredMessage)
+	engo.Mailbox.Listen(messages.TimeSecondPassedMessageType, self.HandleTimeSecondPassedMessage)
 }
 
 // Update is ran every frame, with `dt` being the time
@@ -74,17 +74,7 @@ func (self *CreatureSpawningSystem) New(w *ecs.World) {
 func (self *CreatureSpawningSystem) Update(dt float32) {
 	for _, entity := range self.entities {
 		entity.Update(dt)
-
-		if self.dtFullSeconds > 1 {
-			entity.UpdateActivity(self.dtFullSeconds)
-		}
 	}
-	// TODO might be the good place to implement speed of in-game time
-	// TODO and the PauseSystem
-	if self.dtFullSeconds > 1 {
-		self.dtFullSeconds = 0
-	}
-	self.dtFullSeconds += dt
 }
 
 // Remove is called whenever an Creature is removed from the World, in order to remove it from this sytem as well
@@ -172,6 +162,16 @@ func (self *CreatureSpawningSystem) HandleCreatureHoveredMessage(m engo.Message)
 		Name:    "HoverInfo",
 		GetText: entity.GetTextStatus,
 	})
+}
+
+func (self *CreatureSpawningSystem) HandleTimeSecondPassedMessage(m engo.Message) {
+	msg, ok := m.(messages.TimeSecondPassedMessage)
+	if !ok {
+		return
+	}
+	for _, e := range self.entities {
+		e.UpdateActivity(msg.Time)
+	}
 }
 
 func (self *CreatureSpawningSystem) UpdateSave(saveFile *save.SaveFile) {

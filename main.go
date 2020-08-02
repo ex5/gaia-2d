@@ -79,6 +79,9 @@ func (self *myScene) Setup(u engo.Updater) {
 	systems.InitHUD(u)
 	world.AddSystem(&systems.HUDTextSystem{})
 
+	// In-game time
+	world.AddSystem(&systems.TimeSystem{})
+
 	// Creatures and plants
 	world.AddSystem(&systems.CreatureSpawningSystem{})
 	world.AddSystem(&systems.PlantSpawningSystem{})

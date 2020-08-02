@@ -6,6 +6,7 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/ulule/deepcopier"
 	"gogame/assets"
+	"gogame/calendar"
 	"gogame/data"
 	"gogame/messages"
 )
@@ -122,7 +123,7 @@ func (self *Plant) GetTextStatus() []string {
 	}
 }
 
-func (self *Plant) UpdateActivity(dt float32) {
+func (self *Plant) Update(currentTime *calendar.Time) {
 	if self.IsFullyGrown() {
 		if self.GrownID != 0 {
 			self.Mature()
@@ -131,8 +132,8 @@ func (self *Plant) UpdateActivity(dt float32) {
 		}
 	} else if self.Activity == Growing {
 		// Handle growth
-		self.Growth += self.GetGrowthSpeed() * dt
-		self.Tile.AccessibleResource.Amount += self.GetGrowthRate() * dt
+		self.Growth += self.GetGrowthSpeed()
+		self.Tile.AccessibleResource.Amount += self.GetGrowthRate()
 	}
 	// Handle rest TODO
 }

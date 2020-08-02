@@ -3,6 +3,7 @@ package data
 import (
 	"fmt"
 	"github.com/EngoEngine/engo"
+	"gogame/calendar"
 	"gogame/messages"
 	"gogame/util"
 	"log"
@@ -123,15 +124,15 @@ func (self *Creature) Update(dt float32) {
 	}
 }
 
-func (self *Creature) UpdateActivity(dt float32) {
+func (self *Creature) UpdateActivity(currentTime *calendar.Time) {
 	// Handle durations of needs
 	for _, n := range self.Needs {
-		log.Println(n, n.Duration, time.Duration(int64(dt*float32(time.Second))))
-		n.Duration += time.Duration(int64(dt * float32(time.Second)))
+		log.Println(n, n.Duration, time.Duration(int64(time.Second)))
+		n.Duration += time.Duration(int64(time.Second))
 	}
 	if self.Activity != Eating {
 		// Expend them calories TODO moving increases, sleeping decreases
-		self.Food -= self.EatingSpeed * dt
+		self.Food -= self.EatingSpeed
 	}
 	// Handle hunger
 	if self.IsHungry() && !self.HasNeedFor(Food) {
@@ -155,7 +156,7 @@ func (self *Creature) UpdateActivity(dt float32) {
 		if self.TooFar(self.MovementTarget, 0.1) {
 			v := self.Direction(self.MovementTarget)
 			log.Println("Moving", v)
-			self.Tile.SpaceComponent.Position.Add(*v.MultiplyScalar(dt))
+			self.Tile.SpaceComponent.Position.Add(*v)
 			// TODO speed and smooth movement
 		} else {
 			if self.Activity == LookingAround {
@@ -176,10 +177,10 @@ func (self *Creature) UpdateActivity(dt float32) {
 		if !self.IsSatiated() {
 			target := *self.Target
 			if target.AccessibleResource.Amount > 0 {
-				eaten := self.EatingSpeed * dt
+				eaten := self.EatingSpeed
 				self.Food += eaten
 				self.Target.AccessibleResource.Amount -= eaten
-				log.Println(self, "eating", dt, eaten, self.Food)
+				log.Println(self, "eating", eaten, self.Food)
 			}
 			if target.AccessibleResource.Amount <= 0 {
 				// Ate it all

@@ -40,7 +40,7 @@ func (self *DebugSystem) AddAABB(aabb engo.AABB, colorName string, removeAfter t
 	entity := &DebugShape{
 		BasicEntity: ecs.NewBasic(),
 		removeAfter: removeAfter,
-		shownSince: time.Now(),
+		shownSince:  time.Now(),
 	}
 	entity.SpaceComponent = &common.SpaceComponent{
 		Position: aabb.Min,
@@ -48,11 +48,11 @@ func (self *DebugSystem) AddAABB(aabb engo.AABB, colorName string, removeAfter t
 		Height:   aabb.Max.Y - aabb.Min.Y,
 	}
 	entity.RenderComponent = &common.RenderComponent{
-		Drawable:    common.Rectangle{
+		Drawable: common.Rectangle{
 			BorderWidth: 1,
 			BorderColor: getColor(colorName),
 		},
-		Color:       color.RGBA{0, 0, 0, 0},
+		Color: color.RGBA{0, 0, 0, 0},
 	}
 	entity.RenderComponent.SetZIndex(10)
 	for _, system := range self.world.Systems() {
