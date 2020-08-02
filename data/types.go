@@ -36,7 +36,6 @@ type AccessibleResource struct {
 
 type Object struct {
 	ID            int     `json:"id"`
-	Type          string  `json:"type"` // tile|creature: to distinguish during [un]marshalling
 	SpriteID      int     `json:"sprite_id"`
 	SpritesheetID int     `json:"spritesheet_id"`
 	Name          string  `json:"name"`
@@ -66,11 +65,6 @@ type Tile struct {
 	AccessibleResource *AccessibleResource
 	Object             *Object   `json:"-"`
 	Resource           *Resource `json:"-"`
-}
-
-type SaveFile struct {
-	Tiles     []*Tile     `json:"tiles"`
-	Creatures []*Creature `json:"creatures"`
 }
 
 func (self *Tile) AABB() engo.AABB {

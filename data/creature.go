@@ -6,15 +6,15 @@ import (
 	"gogame/messages"
 	"gogame/util"
 	"log"
-	"time"
 	"strings"
+	"time"
 )
 
 type Activity uint8
 type Want uint8
 type Need struct {
-	Since time.Time
-	Want  Want
+	Duration time.Duration
+	Want     Want
 }
 
 const (
@@ -42,16 +42,16 @@ type Creature struct {
 	*Tile `deepcopier:"skip"`
 
 	// Species properties, immutable
-	ID             int      `json:"id"`
-	ObjectID       int      `json:"object_id"`
-	EatingSpeed    float32  `json:"eating_speed"`
-	Eats           []int    `json:"eats"` // Resource IDs
-	MaxFood        float32  `json:"max_food"`
-	MaxSleep       float32  `json:"max_sleep"`
-	MinFood        float32  `json:"min_food"`
-	MinSleep       float32  `json:"min_sleep"`
-	MovementSpeed  float32  `json:"movement_speed"`
-	Subspecies     string   `json:"subspecies"`
+	ID            int     `json:"id"`
+	ObjectID      int     `json:"object_id"`
+	EatingSpeed   float32 `json:"eating_speed"`
+	Eats          []int   `json:"eats"` // Resource IDs
+	MaxFood       float32 `json:"max_food"`
+	MaxSleep      float32 `json:"max_sleep"`
+	MinFood       float32 `json:"min_food"`
+	MinSleep      float32 `json:"min_sleep"`
+	MovementSpeed float32 `json:"movement_speed"`
+	Species       string  `json:"species"`
 
 	// Live properties, mutable
 	Activity       Activity `json:"activity"`
@@ -59,11 +59,11 @@ type Creature struct {
 	IsAlive        bool     `json:"is_alive"`
 	MovementTarget *Tile    `json:"movement_target"`
 	Name           string   `json:"name"`
-	Needs          []Need `json:"needs"`
+	Needs          []*Need  `json:"needs"`
 	Sleep          float32  `json:"sleep"`
 	Target         *Tile    `json:"target"`
 
-	LastEventID    uint64   `json:"last_event_id"`
+	LastEventID uint64 `json:"last_event_id"`
 }
 
 type Creatures struct {
@@ -72,8 +72,8 @@ type Creatures struct {
 
 func (self *Creature) FindFood(x engo.AABBer) bool {
 	if tile, ok := x.(*Tile); ok {
-		fmt.Println("Checking", tile, self.Eats, tile.Resource.ID)
-		if util.ContainsInt(self.Eats, tile.Resource.ID) && tile.AccessibleResource.Amount > 0 {
+		fmt.Println("Checking", tile, self.Eats, "resource:", tile.Resource)
+		if tile.Resource != nil && util.ContainsInt(self.Eats, tile.Resource.ID) && tile.AccessibleResource.Amount > 0 {
 			return true
 		}
 	}
@@ -124,9 +124,13 @@ func (self *Creature) Update(dt float32) {
 }
 
 func (self *Creature) UpdateActivity(dt float32) {
-	//log.Printf("%+v %+v", dt, self.SpaceComponent)
-	// Expend them calories TODO moving increases, sleeping decreases
+	// Handle durations of needs
+	for _, n := range self.Needs {
+		log.Println(n, n.Duration, time.Duration(int64(dt*float32(time.Second))))
+		n.Duration += time.Duration(int64(dt * float32(time.Second)))
+	}
 	if self.Activity != Eating {
+		// Expend them calories TODO moving increases, sleeping decreases
 		self.Food -= self.EatingSpeed * dt
 	}
 	// Handle hunger
@@ -184,12 +188,10 @@ func (self *Creature) UpdateActivity(dt float32) {
 					Entity: self.Target.BasicEntity,
 				})
 				self.BecomeIdle()
-				// panic("eat all")
 			}
 		} else {
 			self.BecomeIdle()
 			self.RemoveNeedFor(Food)
-			//panic("not hungry")
 		}
 	}
 
@@ -221,7 +223,8 @@ func (self *Creature) AddNeedFor(want Want) bool {
 	if self.HasNeedFor(want) {
 		return false
 	}
-	self.Needs = append(self.Needs, Need{time.Now(), want})
+	n := Need{0, want}
+	self.Needs = append(self.Needs, &n)
 	return true
 }
 
@@ -241,11 +244,22 @@ func (self *Creature) RemoveNeedFor(want Want) bool {
 
 func (self *Creature) CurrentNeeds() string {
 	var needs []string
-	now := time.Now()
 	for _, n := range self.Needs {
-		needs = append(needs, fmt.Sprintf("%s (%s)", n.Want, util.FormatDuration(now.Sub(n.Since))))
+		needs = append(needs, fmt.Sprintf("%s (%s)", n.Want, util.FormatDuration(n.Duration)))
 	}
 	return strings.Join(needs, ",")
+}
+
+func (self *Creature) CurrentHealth() string {
+	return fmt.Sprintf(
+		"Food: %d/%d, sleep: %d/%d",
+		int(self.Food), int(self.MaxFood), int(self.Sleep), int(self.MaxSleep),
+	)
+}
+
+func (self *Creature) CurrentPosition() string {
+	p := self.Tile.SpaceComponent.Position
+	return fmt.Sprintf("At (%d, %d)", int(p.X), int(p.Y))
 }
 
 func (self *Creature) TooFar(tile *Tile, dt float32) bool {

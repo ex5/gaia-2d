@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -11,6 +13,8 @@ import (
 	"gogame/systems"
 	"image/color"
 	"log"
+	"os"
+	"time"
 )
 
 var (
@@ -72,8 +76,9 @@ func (self *myScene) Setup(u engo.Updater) {
 	systems.InitHUD(u)
 	world.AddSystem(&systems.HUDTextSystem{})
 
-	// Creatures
+	// Creatures and plants
 	world.AddSystem(&systems.CreatureSpawningSystem{})
+	world.AddSystem(&systems.PlantSpawningSystem{})
 
 	engo.Mailbox.Listen(messages.SaveMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)
@@ -81,7 +86,7 @@ func (self *myScene) Setup(u engo.Updater) {
 		if !ok {
 			return
 		}
-		save.HandleSaveMessage(world, msg.Filepath)
+		HandleSaveMessage(world, msg.Filepath)
 	})
 	engo.Mailbox.Listen(messages.LoadMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)
@@ -89,7 +94,7 @@ func (self *myScene) Setup(u engo.Updater) {
 		if !ok {
 			return
 		}
-		save.HandleLoadMessage(world, msg.Filepath)
+		HandleLoadMessage(world, msg.Filepath)
 	})
 	engo.Mailbox.Listen(messages.ControlMessageType, func(m engo.Message) {
 		log.Printf("%+v", m)
@@ -114,6 +119,83 @@ func (self *myScene) Setup(u engo.Updater) {
 				})
 			}
 		}
+	})
+}
+
+func HandleSaveMessage(world *ecs.World, filepath string) {
+	log.Println("[SaveGame] preparing the save file")
+	// TODO the game should be paused first
+
+	// All systems that save anything should do it here
+	saveFile := &save.SaveFile{}
+	saveFile.SeenEntityIDs = make(map[uint64]struct{})
+	// Collect data from all systems in the fixed order to avoid writing duplicate Tiles
+	for _, system := range world.Systems() {
+		if sys, ok := system.(*systems.CreatureSpawningSystem); ok {
+			sys.UpdateSave(saveFile)
+		}
+	}
+	for _, system := range world.Systems() {
+		if sys, ok := system.(*systems.PlantSpawningSystem); ok {
+			sys.UpdateSave(saveFile)
+		}
+	}
+	for _, system := range world.Systems() {
+		if sys, ok := system.(*systems.WorldTilesSystem); ok {
+			sys.UpdateSave(saveFile)
+		}
+	}
+
+	log.Printf("[SaveGame] writing the save file '%s'", filepath)
+	f1, err := os.Create(filepath)
+	if err != nil {
+		panic(err)
+	}
+	enc := json.NewEncoder(f1)
+	err = enc.Encode(saveFile)
+	if err != nil {
+		panic(err)
+	}
+	f1.Close()
+	log.Printf(".. Done.\n")
+
+	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+		Name:      "EventMessage",
+		HideAfter: 3 * time.Second,
+		Lines: []string{
+			fmt.Sprintf("Saved to %s", filepath),
+		},
+	})
+}
+
+func HandleLoadMessage(world *ecs.World, filepath string) {
+	log.Printf("[SaveGame] loading from a save file '%s'", filepath)
+	// TODO the game should be paused first
+	f2, err := os.Open(filepath)
+	dec := json.NewDecoder(f2)
+	saveFile := &save.SaveFile{}
+	err = dec.Decode(&saveFile)
+	if err != nil {
+		panic(err)
+	}
+	f2.Close()
+
+	// All systems that save anything should do it here
+	for _, system := range world.Systems() {
+		if sys, ok := system.(*systems.CreatureSpawningSystem); ok {
+			sys.LoadSave(saveFile)
+		}
+		if sys, ok := system.(*systems.WorldTilesSystem); ok {
+			sys.LoadSave(saveFile)
+		}
+	}
+
+	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+		Name:      "EventMessage",
+		HideAfter: 3 * time.Second,
+		Lines: []string{
+			fmt.Sprintf("Loaded %s", filepath),
+		},
 	})
 }
 

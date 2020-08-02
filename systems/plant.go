@@ -1,0 +1,132 @@
+package systems
+
+import (
+	"fmt"
+	"github.com/EngoEngine/ecs"
+	"github.com/EngoEngine/engo"
+	"github.com/EngoEngine/engo/common"
+	"github.com/ulule/deepcopier"
+	"gogame/life/plants"
+	"gogame/messages"
+	"gogame/save"
+	"log"
+)
+
+type PlantSpawningSystem struct {
+	world         *ecs.World
+	dtFullSeconds float32
+	entities      []*plants.Plant
+}
+
+func NewPlant(plantID int, position *engo.Point) *plants.Plant {
+	plant := plants.GetPlantByID(plantID)
+	tile := NewTile(plant.ObjectID, position, 2, &common.CollisionComponent{Main: 0, Group: 0})
+	entity := &plants.Plant{ID: plantID, Tile: tile}
+	// Initialise plant's stats from its initial record
+	deepcopier.Copy(plant).To(entity)
+	return entity
+}
+
+func (self *PlantSpawningSystem) Add(entity *plants.Plant) {
+	self.entities = append(self.entities, entity)
+
+	// Add the entity to the various systems
+	for _, system := range self.world.Systems() {
+		switch sys := system.(type) {
+		case *WorldTilesSystem:
+			sys.Add(entity.Tile)
+		}
+	}
+}
+
+// New is the initialisation of the System
+func (self *PlantSpawningSystem) New(w *ecs.World) {
+	log.Println("PlantSpawningSystem was added to the Scene")
+
+	self.world = w
+
+	engo.Mailbox.Listen(messages.NewPlantMessageType, self.HandleNewPlantMessage)
+	engo.Mailbox.Listen(messages.PlantHoveredMessageType, self.HandlePlantHoveredMessage)
+}
+
+// Update is ran every frame, with `dt` being the time
+// in seconds since the last frame
+func (self *PlantSpawningSystem) Update(dt float32) {
+	for _, entity := range self.entities {
+		if self.dtFullSeconds > 1 {
+			entity.UpdateActivity(self.dtFullSeconds)
+			self.dtFullSeconds = 0
+		}
+		self.dtFullSeconds += dt
+	}
+}
+
+// Remove is called whenever an Plant is removed from the World, in order to remove it from this sytem as well
+func (self *PlantSpawningSystem) Remove(e ecs.BasicEntity) {
+	delete := -1
+	for index, entity := range self.entities {
+		if entity.BasicEntity.ID() == e.ID() {
+			delete = index
+		}
+	}
+	if delete >= 0 {
+		self.entities = append(self.entities[:delete], self.entities[delete+1:]...)
+	}
+}
+
+func (self *PlantSpawningSystem) Get(entityID uint64) *plants.Plant {
+	for _, e := range self.entities {
+		if e.BasicEntity.ID() == entityID {
+			return e
+		}
+	}
+	return nil
+}
+
+func (self *PlantSpawningSystem) HandleNewPlantMessage(m engo.Message) {
+	log.Printf("%+v", m)
+	msg, ok := m.(messages.NewPlantMessage)
+	if !ok {
+		return
+	}
+	e := NewPlant(msg.PlantID, msg.Point)
+	self.Add(e)
+}
+
+func (self *PlantSpawningSystem) HandlePlantHoveredMessage(m engo.Message) {
+	msg, ok := m.(messages.PlantHoveredMessage)
+	if !ok {
+		return
+	}
+	entity := self.Get(msg.EntityID)
+	if entity == nil {
+		return
+	}
+	lines := []string{
+		fmt.Sprintf("%s, %s", entity.Name, entity.Species),
+		fmt.Sprintf("%s", entity.CurrentGrowth()),
+		fmt.Sprintf("%s", entity.Activity),
+		fmt.Sprintf("%s", entity.CurrentPosition()),
+	}
+	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+		Name:  "HoverInfo",
+		Lines: lines,
+	})
+}
+
+func (self *PlantSpawningSystem) UpdateSave(saveFile *save.SaveFile) {
+	for _, e := range self.entities {
+		entityID := e.BasicEntity.ID()
+		if _, ok := saveFile.SeenEntityIDs[entityID]; !ok {
+			saveFile.Plants = append(saveFile.Plants, e)
+			saveFile.SeenEntityIDs[e.BasicEntity.ID()] = struct{}{}
+		}
+	}
+}
+
+func (self *PlantSpawningSystem) LoadSave(saveFile *save.SaveFile) {
+	log.Printf("[PlantSpawningSystem] Plants in the save file: %d\n", len(saveFile.Plants))
+	for _, c := range saveFile.Plants {
+		self.Add(c)
+	}
+}

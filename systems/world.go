@@ -10,6 +10,7 @@ import (
 	"gogame/controls"
 	"gogame/data"
 	"gogame/messages"
+	"gogame/save"
 	"gogame/util"
 	"log"
 	"math/rand"
@@ -84,6 +85,17 @@ func (self *WorldTilesSystem) Add(tile *data.Tile) {
 	}
 }
 
+func (self *WorldTilesSystem) ReplaceObject(tile *data.Tile, objectID int) {
+	tile.ObjectID = objectID
+	tile.Object = assets.GetObjectById(objectID)
+	if tile.Resource == nil && tile.Object.ResourceID != 0 {
+		tile.Resource = assets.GetResourceByID(tile.Object.ResourceID)
+	}
+	tile.RenderComponent.Drawable = tile.Object.Spritesheet.Cell(tile.Object.SpriteID)
+	tile.AccessibleResource = &data.AccessibleResource{tile.Object.ResourceID, tile.Object.Amount}
+	// TODO update animations if any
+}
+
 func (self *WorldTilesSystem) New(world *ecs.World) {
 	self.world = world
 	self.tiles = make([]*data.Tile, 0)
@@ -91,11 +103,12 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 	engo.Mailbox.Listen(messages.InteractionMessageType, self.HandleInteractMessage)
 	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
 	engo.Mailbox.Listen(messages.TileRemoveMessageType, self.HandleTileRemoveMessage)
+	engo.Mailbox.Listen(messages.TileReplaceMessageType, self.HandleTileReplaceMessage)
 }
 
 func (self *WorldTilesSystem) Generate() {
 	mapSizeX, mapSizeY := 50, 50
-	groundID := 3 // grassland, default ground
+	groundID := 4 // grassland, default ground
 	// ground doesn't collide with anything
 	collisionC := &common.CollisionComponent{Main: 0, Group: 0}
 	for i := 0; i < mapSizeX; i++ {
@@ -104,11 +117,12 @@ func (self *WorldTilesSystem) Generate() {
 			tile := NewTile(groundID, position, 0, collisionC)
 			self.Add(tile)
 
-			// Add a random vegetation tile
+			// Add a random vegetation
 			if rand.Int()%3 == 0 {
-				plant := assets.GetRandomObjectOfType("plant")
-				tile = NewTile(plant.ID, position, 1, collisionC)
-				self.Add(tile)
+				engo.Mailbox.Dispatch(messages.NewPlantMessage{
+					Point:   position,
+					PlantID: 1,
+				})
 			}
 
 		}
@@ -136,23 +150,23 @@ func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("World: %+v", entity)
 		if entity != nil {
-			if entity.Object.Type == "creature" {
-				engo.Mailbox.Dispatch(messages.CreatureHoveredMessage{
-					EntityID: entity.BasicEntity.ID(),
-				})
-			} else {
-				// FIXME must be a better way than this?
-				lines := []string{
-					fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-					fmt.Sprintf("%v", entity.Object),
-					fmt.Sprintf("%v", entity.AccessibleResource),
-					fmt.Sprintf("%v", entity.Resource),
-				}
-				engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-					Name:  "HoverInfo",
-					Lines: lines,
-				})
+			lines := []string{
+				fmt.Sprintf("#%d", entity.BasicEntity.ID()),
+				fmt.Sprintf("%v", entity.Object),
+				fmt.Sprintf("%v", entity.AccessibleResource),
+				fmt.Sprintf("%v", entity.Resource),
 			}
+			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+				Name:  "HoverInfo",
+				Lines: lines,
+			})
+			// FIXME must be a better way than this?
+			engo.Mailbox.Dispatch(messages.CreatureHoveredMessage{
+				EntityID: entity.BasicEntity.ID(),
+			})
+			engo.Mailbox.Dispatch(messages.PlantHoveredMessage{
+				EntityID: entity.BasicEntity.ID(),
+			})
 		}
 	}
 }
@@ -164,6 +178,7 @@ func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
 		return
 	}
 	if msg.Action == "add_object" {
+		// TODO disallow placing on top of an existing overlaying Tile
 		for _, system := range self.world.Systems() {
 			controlsSystem, ok := system.(*controls.ControlsSystem)
 			if ok {
@@ -188,6 +203,16 @@ func (self *WorldTilesSystem) HandleTileRemoveMessage(m engo.Message) {
 	self.world.RemoveEntity(*msg.Entity)
 }
 
+func (self *WorldTilesSystem) HandleTileReplaceMessage(m engo.Message) {
+	//log.Printf("%+v", m)
+	msg, ok := m.(messages.TileReplaceMessage)
+	if !ok {
+		return
+	}
+	tile := self.GetEntityByID(msg.Entity.ID())
+	self.ReplaceObject(tile, msg.ObjectID)
+}
+
 func (self *WorldTilesSystem) Update(dt float32) {}
 
 func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
@@ -202,15 +227,17 @@ func (self *WorldTilesSystem) Remove(e ecs.BasicEntity) {
 	}
 }
 
-func (self *WorldTilesSystem) UpdateSave(saveFile *data.SaveFile) {
+func (self *WorldTilesSystem) UpdateSave(saveFile *save.SaveFile) {
 	for _, t := range self.tiles {
-		if t.Object.Type == "tile" {
+		entityID := t.BasicEntity.ID()
+		if _, ok := saveFile.SeenEntityIDs[entityID]; !ok {
 			saveFile.Tiles = append(saveFile.Tiles, t)
+			saveFile.SeenEntityIDs[entityID] = struct{}{}
 		}
 	}
 }
 
-func (self *WorldTilesSystem) LoadSave(saveFile *data.SaveFile) {
+func (self *WorldTilesSystem) LoadSave(saveFile *save.SaveFile) {
 	log.Printf("[WorldTilesSystem] Tiles in the save file: %d\n", len(saveFile.Tiles))
 	for _, t := range saveFile.Tiles {
 		self.Add(t)

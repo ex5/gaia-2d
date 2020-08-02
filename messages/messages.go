@@ -2,7 +2,7 @@ package messages
 
 import (
 	"github.com/EngoEngine/ecs"
-	//"github.com/EngoEngine/engo/common"
+	"github.com/EngoEngine/engo"
 	//"log"
 )
 
@@ -11,7 +11,10 @@ const InteractionMessageType string = "InteractionMessage"
 const SaveMessageType string = "SaveMessage"
 const LoadMessageType string = "LoadMessage"
 const TileRemoveMessageType string = "TileRemoveMessage"
+const TileReplaceMessageType string = "TileReplaceMessage"
 const CreatureHoveredMessageType string = "CreatureHoveredMessage"
+const PlantHoveredMessageType string = "PlantHoveredMessage"
+const NewPlantMessageType string = "NewPlantMessage"
 
 type ControlMessage struct {
 	Action     string
@@ -37,8 +40,22 @@ type TileRemoveMessage struct {
 	Entity *ecs.BasicEntity
 }
 
+type TileReplaceMessage struct {
+	Entity   *ecs.BasicEntity
+	ObjectID int
+}
+
 type CreatureHoveredMessage struct {
 	EntityID uint64
+}
+
+type PlantHoveredMessage struct {
+	EntityID uint64
+}
+
+type NewPlantMessage struct {
+	PlantID int
+	Point   *engo.Point
 }
 
 func (ControlMessage) Type() string {
@@ -61,6 +78,18 @@ func (TileRemoveMessage) Type() string {
 	return TileRemoveMessageType
 }
 
+func (TileReplaceMessage) Type() string {
+	return TileReplaceMessageType
+}
+
 func (CreatureHoveredMessage) Type() string {
 	return CreatureHoveredMessageType
+}
+
+func (PlantHoveredMessage) Type() string {
+	return PlantHoveredMessageType
+}
+
+func (NewPlantMessage) Type() string {
+	return NewPlantMessageType
 }

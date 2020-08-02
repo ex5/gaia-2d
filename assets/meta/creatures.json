@@ -1,23 +1,21 @@
-{
-    "creatures": [
-        {
-            "id": 1,
-            "object_id": 4,
-            "is_alive": true,
-            "name": "Chicken",
-            "subspecies": "Gallus gallus domesticus",
-            "movement_speed": 10.0,
-            "eating_speed": 10.0,
-            "color": "white",
-            "min_food": 75,
-            "max_food": 300,
-            "food": 75,
-            "eats": [
-                1
-            ],
-            "min_sleep": 4,
-            "max_sleep": 16,
-            "sleep": 4
-        }
-    ]
-}
+{"creatures": [
+    {
+        "id": 1,
+        "object_id": 5,
+        "is_alive": true,
+        "name": "Chicken",
+        "species": "Gallus gallus domesticus",
+        "movement_speed": 10.0,
+        "eating_speed": 10.0,
+        "color": "white",
+        "min_food": 75,
+        "max_food": 300,
+        "food": 75,
+        "eats": [
+            1
+        ],
+        "min_sleep": 4,
+        "max_sleep": 16,
+        "sleep": 4
+    }
+]}

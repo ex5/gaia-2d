@@ -31,7 +31,7 @@ var (
 	WorkDir string
 )
 
-func readJSON(path string) []byte {
+func ReadJSON(path string) []byte {
 	jsonFile, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -70,20 +70,20 @@ func InitAssets() {
 	engo.Files.LoadReaderData(config.FontURL, bytes.NewReader(gosmallcaps.TTF))
 
 	// Load the spritesheets
-	byteValue := readJSON("assets/meta/spritesheets.json")
+	byteValue := ReadJSON("assets/meta/spritesheets.json")
 	json.Unmarshal(byteValue, &spritesheets)
 	loadSpritesheets()
 
 	// Load objects
-	byteValue = readJSON("assets/meta/objects.json")
+	byteValue = ReadJSON("assets/meta/objects.json")
 	json.Unmarshal(byteValue, &objects)
 
 	// Load other related metadata
-	byteValue = readJSON("assets/meta/resources.json")
+	byteValue = ReadJSON("assets/meta/resources.json")
 	json.Unmarshal(byteValue, &resources)
 
 	// Load creatures
-	byteValue = readJSON("assets/meta/creatures.json")
+	byteValue = ReadJSON("assets/meta/creatures.json")
 	json.Unmarshal(byteValue, &creatures)
 
 	// Prepare hashes for ease of access to loaded assets

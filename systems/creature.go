@@ -9,6 +9,7 @@ import (
 	"gogame/assets"
 	"gogame/data"
 	"gogame/messages"
+	"gogame/save"
 	"gogame/util"
 	"log"
 )
@@ -147,7 +148,6 @@ func (self *CreatureSpawningSystem) HandleControlMessage(m engo.Message) {
 		x, y := util.ToGridPosition(self.mouseTracker.MouseX, self.mouseTracker.MouseY)
 		c := NewCreature(msg.CreatureID, &engo.Point{x, y})
 		self.Add(c)
-
 	}
 }
 
@@ -157,11 +157,15 @@ func (self *CreatureSpawningSystem) HandleCreatureHoveredMessage(m engo.Message)
 		return
 	}
 	entity := self.Get(msg.EntityID)
+	if entity == nil {
+		return
+	}
 	lines := []string{
-		fmt.Sprintf("%s, %s", entity.Name, entity.Subspecies),
-		fmt.Sprintf("%s", entity.CurrentNeeds()),
+		fmt.Sprintf("%s, %s", entity.Name, entity.Species),
+		fmt.Sprintf("Needs %s", entity.CurrentNeeds()),
+		fmt.Sprintf("%s", entity.CurrentHealth()),
 		fmt.Sprintf("%s", entity.Activity),
-		fmt.Sprintf("%v", entity),
+		fmt.Sprintf("%s", entity.CurrentPosition()),
 	}
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
 		Name:  "HoverInfo",
@@ -169,15 +173,17 @@ func (self *CreatureSpawningSystem) HandleCreatureHoveredMessage(m engo.Message)
 	})
 }
 
-func (self *CreatureSpawningSystem) UpdateSave(saveFile *data.SaveFile) {
+func (self *CreatureSpawningSystem) UpdateSave(saveFile *save.SaveFile) {
 	for _, e := range self.entities {
-		if e.Tile.Object.Type == "creature" {
+		entityID := e.BasicEntity.ID()
+		if _, ok := saveFile.SeenEntityIDs[entityID]; !ok {
 			saveFile.Creatures = append(saveFile.Creatures, e)
+			saveFile.SeenEntityIDs[e.BasicEntity.ID()] = struct{}{}
 		}
 	}
 }
 
-func (self *CreatureSpawningSystem) LoadSave(saveFile *data.SaveFile) {
+func (self *CreatureSpawningSystem) LoadSave(saveFile *save.SaveFile) {
 	log.Printf("[CreatureSpawningSystem] Creatures in the save file: %d\n", len(saveFile.Creatures))
 	for _, c := range saveFile.Creatures {
 		self.Add(c)

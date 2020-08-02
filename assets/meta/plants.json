@@ -1,0 +1,35 @@
+{"plants": [
+    {
+        "id": 1,
+        "object_id": 1,
+        "name": "Young meadow grass",
+        "species": "P. trivialis",
+        "grown_id": 2,
+        "growth": 0,
+        "growth_rate": 2,
+        "growth_speed": 1,
+        "max_growth": 100
+    },
+    {
+        "id": 2,
+        "object_id": 2,
+        "name": "Meadow grass",
+        "species": "P. trivialis",
+        "grown_id": 3,
+        "growth": 100,
+        "growth_rate": 10,
+        "growth_speed": 1,
+        "max_growth": 200
+    },
+    {
+        "id": 3,
+        "object_id": 3,
+        "name": "Flowering meadow grass",
+        "species": "P. trivialis",
+        "grown_id": null,
+        "growth": 200,
+        "growth_rate": -1,
+        "growth_speed": 1,
+        "max_growth": 250
+    }
+]}
