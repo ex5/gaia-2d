@@ -73,14 +73,15 @@ func (self *Tile) AABB() engo.AABB {
 }
 
 func (self *Tile) SurroundingAreaAABB(radius float32) engo.AABB {
+	var padding float32 = 1 // extra pixel in order to get corner positions into the rectangle
 	return engo.AABB{
 		Min: engo.Point{
-			X: self.SpaceComponent.Position.X - radius,
-			Y: self.SpaceComponent.Position.Y - radius,
+			X: self.SpaceComponent.Position.X - float32(config.SpriteWidth) * radius - padding,
+			Y: self.SpaceComponent.Position.Y - float32(config.SpriteHeight) * radius - padding,
 		},
 		Max: engo.Point{
-			X: self.SpaceComponent.Position.X + float32(config.SpriteWidth) + radius,
-			Y: self.SpaceComponent.Position.Y + float32(config.SpriteHeight) + radius,
+			X: self.SpaceComponent.Position.X + float32(config.SpriteWidth) * (radius + 1) + padding,
+			Y: self.SpaceComponent.Position.Y + float32(config.SpriteHeight) * (radius + 1) + padding,
 		},
 	}
 }

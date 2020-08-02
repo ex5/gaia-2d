@@ -2,10 +2,12 @@ package messages
 
 import (
 	"github.com/EngoEngine/engo"
+	"time"
 )
 
 const SpacialRequestMessageType string = "SpacialRequestMessage"
 const SpacialResponseMessageType string = "SpacialResponseMessage"
+const DisplayDebugAABBMessageType string = "DisplayDebugAABBMessage"
 
 type SpacialRequestMessage struct {
 	EntityID uint64
@@ -23,10 +25,21 @@ type SpacialResponseMessage struct {
 	Result        []engo.AABBer
 }
 
+type DisplayDebugAABBMessage struct {
+	Aabbs       []engo.AABB
+	Aabbers     []engo.AABBer
+	RemoveAfter time.Duration
+	Color       string
+}
+
 func (SpacialRequestMessage) Type() string {
 	return SpacialRequestMessageType
 }
 
 func (SpacialResponseMessage) Type() string {
 	return SpacialResponseMessageType
+}
+
+func (DisplayDebugAABBMessage) Type() string {
+	return DisplayDebugAABBMessageType
 }

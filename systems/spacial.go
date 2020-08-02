@@ -7,6 +7,7 @@ import (
 	"gogame/config"
 	"gogame/messages"
 	"log"
+	"time"
 	//"math/rand"
 )
 
@@ -37,6 +38,11 @@ func (self *SpacialSystem) Remove(e ecs.BasicEntity) {
 }
 
 func (self *SpacialSystem) Query(aabb engo.AABB, filter func(aabb engo.AABBer) bool) []engo.AABBer {
+	engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
+		Aabbs:       []engo.AABB{aabb},
+		RemoveAfter: 3 * time.Second,
+		Color:       "red",
+	})
 	return self.entities.Retrieve(aabb, filter)
 }
 
@@ -47,6 +53,11 @@ func (self *SpacialSystem) HandleSpacialRequestMessage(m engo.Message) {
 		return
 	}
 	foundEntities := self.Query(msg.Aabb, msg.Filter)
+	engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
+		Aabbers:     foundEntities,
+		RemoveAfter: 3 * time.Second,
+		Color:       "green",
+	})
 	engo.Mailbox.Dispatch(messages.SpacialResponseMessage{
 		Aabb:     msg.Aabb,
 		EntityID: msg.EntityID,

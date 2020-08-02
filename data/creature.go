@@ -142,7 +142,7 @@ func (self *Creature) UpdateActivity(dt float32) {
 		self.Activity = LookingAround
 		log.Println(self, "looks around", self.Needs)
 		engo.Mailbox.Dispatch(messages.SpacialRequestMessage{
-			Aabb:     self.Tile.SpaceComponent.AABB(),
+			Aabb:     self.SurroundingAreaAABB(2),
 			Filter:   self.FindFood,
 			EntityID: self.BasicEntity.ID(),
 			EventID:  self.LastEventID + 1,
@@ -200,7 +200,7 @@ func (self *Creature) UpdateActivity(dt float32) {
 		if self.Activity != Wandering && self.DecideToWander() {
 			self.Activity = Wandering
 			engo.Mailbox.Dispatch(messages.SpacialRequestMessage{
-				Aabb:     self.SurroundingAreaAABB(100),
+				Aabb:     self.SurroundingAreaAABB(5),
 				Filter:   func(aabb engo.AABBer) bool { return true },
 				EntityID: self.BasicEntity.ID(),
 				EventID:  self.LastEventID + 1,

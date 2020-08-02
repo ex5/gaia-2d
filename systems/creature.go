@@ -2,6 +2,7 @@ package systems
 
 import (
 	"fmt"
+	"time"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -126,6 +127,11 @@ func (self *CreatureSpawningSystem) HandleSpacialResponseMessage(m engo.Message)
 					"Found tile", tile, tile.SpaceComponent.Position,
 					"our position", entity.Tile.SpaceComponent.Position)
 				entity.MovementTarget = tile
+				engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
+					Aabbers:     []engo.AABBer{entity.MovementTarget},
+					RemoveAfter: 3 * time.Second,
+					Color:       "blue",
+				})
 				break
 			}
 		}
