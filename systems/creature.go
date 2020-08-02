@@ -76,12 +76,14 @@ func (self *CreatureSpawningSystem) Update(dt float32) {
 
 		if self.dtFullSeconds > 1 {
 			entity.UpdateActivity(self.dtFullSeconds)
-			self.dtFullSeconds = 0
 		}
-		self.dtFullSeconds += dt
-		// TODO might be the good place to implement speed of in-game time
-		// TODO and the PauseSystem
 	}
+	// TODO might be the good place to implement speed of in-game time
+	// TODO and the PauseSystem
+	if self.dtFullSeconds > 1 {
+		self.dtFullSeconds = 0
+	}
+	self.dtFullSeconds += dt
 }
 
 // Remove is called whenever an Creature is removed from the World, in order to remove it from this sytem as well
@@ -160,16 +162,9 @@ func (self *CreatureSpawningSystem) HandleCreatureHoveredMessage(m engo.Message)
 	if entity == nil {
 		return
 	}
-	lines := []string{
-		fmt.Sprintf("%s, %s", entity.Name, entity.Species),
-		fmt.Sprintf("Needs %s", entity.CurrentNeeds()),
-		fmt.Sprintf("%s", entity.CurrentHealth()),
-		fmt.Sprintf("%s", entity.Activity),
-		fmt.Sprintf("%s", entity.CurrentPosition()),
-	}
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-		Name:  "HoverInfo",
-		Lines: lines,
+		Name:    "HoverInfo",
+		GetText: entity.GetTextStatus,
 	})
 }
 

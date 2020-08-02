@@ -162,8 +162,10 @@ func HandleSaveMessage(world *ecs.World, filepath string) {
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
 		Name:      "EventMessage",
 		HideAfter: 3 * time.Second,
-		Lines: []string{
-			fmt.Sprintf("Saved to %s", filepath),
+		GetText: func() []string {
+			return []string{
+				fmt.Sprintf("Saved to %s", filepath),
+			}
 		},
 	})
 }
@@ -193,8 +195,10 @@ func HandleLoadMessage(world *ecs.World, filepath string) {
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
 		Name:      "EventMessage",
 		HideAfter: 3 * time.Second,
-		Lines: []string{
-			fmt.Sprintf("Loaded %s", filepath),
+		GetText: func() []string {
+			return []string{
+				fmt.Sprintf("Loaded %s", filepath),
+			}
 		},
 	})
 }

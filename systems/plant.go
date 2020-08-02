@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -55,10 +54,12 @@ func (self *PlantSpawningSystem) Update(dt float32) {
 	for _, entity := range self.entities {
 		if self.dtFullSeconds > 1 {
 			entity.UpdateActivity(self.dtFullSeconds)
-			self.dtFullSeconds = 0
 		}
-		self.dtFullSeconds += dt
 	}
+	if self.dtFullSeconds > 1 {
+		self.dtFullSeconds = 0
+	}
+	self.dtFullSeconds += dt
 }
 
 // Remove is called whenever an Plant is removed from the World, in order to remove it from this sytem as well
@@ -102,15 +103,9 @@ func (self *PlantSpawningSystem) HandlePlantHoveredMessage(m engo.Message) {
 	if entity == nil {
 		return
 	}
-	lines := []string{
-		fmt.Sprintf("%s, %s", entity.Name, entity.Species),
-		fmt.Sprintf("%s", entity.CurrentGrowth()),
-		fmt.Sprintf("%s", entity.Activity),
-		fmt.Sprintf("%s", entity.CurrentPosition()),
-	}
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-		Name:  "HoverInfo",
-		Lines: lines,
+		Name:    "HoverInfo",
+		GetText: entity.GetTextStatus,
 	})
 }
 

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
@@ -81,5 +82,14 @@ func (self *Tile) SurroundingAreaAABB(radius float32) engo.AABB {
 			X: self.SpaceComponent.Position.X + float32(config.SpriteWidth) + radius,
 			Y: self.SpaceComponent.Position.Y + float32(config.SpriteHeight) + radius,
 		},
+	}
+}
+
+func (self *Tile) GetTextStatus() []string {
+	return []string{
+		fmt.Sprintf("#%d", self.BasicEntity.ID()),
+		fmt.Sprintf("%v", self.Object),
+		fmt.Sprintf("%v", self.AccessibleResource),
+		fmt.Sprintf("%v", self.Resource),
 	}
 }

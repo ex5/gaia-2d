@@ -29,13 +29,15 @@ type Text struct {
 type HUDTextEntity struct {
 	ecs.BasicEntity
 
-	Position *engo.Point
-	Name     string
-	Height   int
+	Position      *engo.Point
+	Name          string
+	Height        int
+	GetTextStatus func() []string
 
 	hideAfter  time.Duration
 	shownSince time.Time
 	hidden     bool
+	fnt        *common.Font
 
 	text []*Text
 }
@@ -45,7 +47,8 @@ type HUDTextSystem struct {
 	world *ecs.World
 	fnt   *common.Font
 
-	entities map[string]*HUDTextEntity
+	dtFullSeconds float32
+	entities      map[string]*HUDTextEntity
 }
 
 func (self *HUDTextEntity) SetHidden(hide bool) {
@@ -61,21 +64,32 @@ func (self *HUDTextEntity) SetHidden(hide bool) {
 	log.Println("SetHidden", hide, self)
 }
 
-func (h *HUDTextSystem) SetText(entityName string, lines []string, hideAfter time.Duration) {
+func (h *HUDTextSystem) SetText(entityName string, display func() []string, hideAfter time.Duration) {
 	entity := h.entities[entityName]
+	entity.GetTextStatus = display
+	entity.SetHidden(false)
+	entity.hideAfter = hideAfter
 
-	for i := 0; i < len(entity.text) && i < len(lines); i++ {
-		entity.text[i].RenderComponent.Drawable = common.Text{
-			Font: h.fnt,
+	// Force update
+	entity.Update()
+}
+
+func (self *HUDTextEntity) Update() {
+	if self.GetTextStatus == nil {
+		return
+	}
+	lines := self.GetTextStatus()
+	for i := 0; i < len(lines) && i < self.Height; i++ {
+		self.text[i].RenderComponent.Drawable = common.Text{
+			Font: self.fnt,
 			Text: lines[i],
 		}
 	}
-	entity.SetHidden(false)
-	entity.hideAfter = hideAfter
 }
 
 func (h *HUDTextSystem) InitText(entityName string) {
 	entity := h.entities[entityName]
+	entity.fnt = h.fnt
 
 	for i := 0; i < entity.Height; i++ {
 		text := Text{BasicEntity: ecs.NewBasic()}
@@ -128,7 +142,7 @@ func (h *HUDTextSystem) HandleHUDTextUpdateMessage(m engo.Message) {
 	if !ok {
 		return
 	}
-	h.SetText(msg.Name, msg.Lines, msg.HideAfter)
+	h.SetText(msg.Name, msg.GetText, msg.HideAfter)
 }
 
 // Add adds an entity to the system
@@ -141,8 +155,12 @@ func (self *HUDTextSystem) Add(name string, x float32, y float32, h int) {
 }
 
 // Update is called each frame to update the system.
-func (h *HUDTextSystem) Update(dt float32) {
-	for _, e := range h.entities {
+func (self *HUDTextSystem) Update(dt float32) {
+	for _, e := range self.entities {
+		if self.dtFullSeconds > 1 {
+			e.Update()
+		}
+
 		if e.hideAfter > 0 && !e.hidden {
 			now := time.Now()
 			if now.Sub(e.shownSince) > e.hideAfter {
@@ -150,6 +168,10 @@ func (h *HUDTextSystem) Update(dt float32) {
 			}
 		}
 	}
+	if self.dtFullSeconds > 1 {
+		self.dtFullSeconds = 0
+	}
+	self.dtFullSeconds += dt
 }
 
 // Remove takes an enitty out of the system.

@@ -9,7 +9,7 @@ const HUDTextUpdateMessageType string = "HUDTextUpdateMessage"
 type HUDTextUpdateMessage struct {
 	Name      string
 	HideAfter time.Duration
-	Lines     []string
+	GetText   func() []string
 }
 
 func (HUDTextUpdateMessage) Type() string {

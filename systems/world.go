@@ -150,15 +150,9 @@ func (self *WorldTilesSystem) HandleInteractMessage(m engo.Message) {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("World: %+v", entity)
 		if entity != nil {
-			lines := []string{
-				fmt.Sprintf("#%d", entity.BasicEntity.ID()),
-				fmt.Sprintf("%v", entity.Object),
-				fmt.Sprintf("%v", entity.AccessibleResource),
-				fmt.Sprintf("%v", entity.Resource),
-			}
 			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name:  "HoverInfo",
-				Lines: lines,
+				Name:    "HoverInfo",
+				GetText: entity.GetTextStatus,
 			})
 			// FIXME must be a better way than this?
 			engo.Mailbox.Dispatch(messages.CreatureHoveredMessage{
