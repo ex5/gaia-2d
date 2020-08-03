@@ -10,6 +10,7 @@ import (
 	"gogame/controls"
 	"gogame/messages"
 	"gogame/save"
+	"gogame/shaders"
 	"gogame/systems"
 	"image/color"
 	"log"
@@ -33,6 +34,7 @@ func (*myScene) Type() string { return "gaea" }
 // to allow you to register / queue them
 func (*myScene) Preload() {
 	assets.InitAssets()
+	common.AddShader(shaders.WindShader)
 }
 
 // Setup is called before the main loop starts. It allows you

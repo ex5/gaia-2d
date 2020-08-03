@@ -8,11 +8,13 @@ import (
 	"gogame/life/plants"
 	"gogame/messages"
 	"gogame/save"
+	"gogame/shaders"
 	"log"
 )
 
 type PlantSpawningSystem struct {
 	world    *ecs.World
+	shader   common.Shader
 	entities []*plants.Plant
 }
 
@@ -33,6 +35,7 @@ func (self *PlantSpawningSystem) Add(entity *plants.Plant) {
 		switch sys := system.(type) {
 		case *WorldTilesSystem:
 			sys.Add(entity.Tile)
+			entity.Tile.RenderComponent.SetShader(self.shader)
 		}
 	}
 }
@@ -42,6 +45,14 @@ func (self *PlantSpawningSystem) New(w *ecs.World) {
 	log.Println("PlantSpawningSystem was added to the Scene")
 
 	self.world = w
+	self.shader = shaders.WindShader
+	// TODO can be changed elsewhere
+	shader, ok := self.shader.(*shaders.BasicShader)
+	if !ok {
+		panic("not a shader we've expected")
+	}
+	shader.Wave.Y = 2
+	shader.Speed = 0.005
 
 	engo.Mailbox.Listen(messages.NewPlantMessageType, self.HandleNewPlantMessage)
 	engo.Mailbox.Listen(messages.PlantHoveredMessageType, self.HandlePlantHoveredMessage)
