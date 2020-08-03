@@ -29,10 +29,11 @@ type Text struct {
 type HUDTextEntity struct {
 	ecs.BasicEntity
 
-	Position      *engo.Point
+	position      *engo.Point
 	Name          string
 	Height        int
 	GetTextStatus func() []string
+	GetPosition   func() *engo.Point
 
 	hideAfter  time.Duration
 	shownSince time.Time
@@ -92,6 +93,16 @@ func (self *HUDTextEntity) Update() {
 	}
 }
 
+func (self *HUDTextEntity) Resize(newW int, newH int) {
+	self.position = self.GetPosition()
+	for i, t := range self.text {
+		t.SpaceComponent.Position = engo.Point{
+			X: self.position.X,
+			Y: self.position.Y + float32(i*config.LineHeight),
+		}
+	}
+}
+
 func (h *HUDTextSystem) InitText(entityName string) {
 	entity := h.entities[entityName]
 	entity.fnt = h.fnt
@@ -106,8 +117,8 @@ func (h *HUDTextSystem) InitText(entityName string) {
 		text.RenderComponent.SetZIndex(config.HUDLayer)
 		text.SpaceComponent = common.SpaceComponent{
 			Position: engo.Point{
-				X: entity.Position.X,
-				Y: entity.Position.Y + float32(i*config.LineHeight),
+				X: entity.position.X,
+				Y: entity.position.Y + float32(i*config.LineHeight),
 			},
 		}
 		for _, system := range h.world.Systems() {
@@ -117,6 +128,8 @@ func (h *HUDTextSystem) InitText(entityName string) {
 			}
 		}
 		entity.text = append(entity.text, &text)
+		// Parenting is useless currently: it doesn't imply coordinate transform parenting FIXME 2.0
+		// entity.BasicEntity.AppendChild(&text.BasicEntity)
 	}
 }
 
@@ -135,13 +148,20 @@ func (h *HUDTextSystem) New(w *ecs.World) {
 
 	// Initialise all known text elements of the UI
 	h.entities = make(map[string]*HUDTextEntity)
-	h.Add("HoverInfo", config.HUDMarginL, engo.WindowHeight()-config.HoverInfoHeight, 8)
-	h.Add("EventMessage", config.HUDMarginL, config.HUDMarginT, 1)
-	h.Add("CurrentTime", engo.WindowWidth()-float32(config.FontSize*20), engo.WindowHeight()-config.HoverInfoHeight, 2)
+	h.Add("HoverInfo", func() *engo.Point {
+		return &engo.Point{config.HUDMarginL, engo.WindowHeight() - config.HoverInfoHeight}
+	}, 8)
+	h.Add("EventMessage", func() *engo.Point {
+		return &engo.Point{config.HUDMarginL, config.HUDMarginT}
+	}, 1)
+	h.Add("CurrentTime", func() *engo.Point {
+		return &engo.Point{engo.WindowWidth() - float32(config.FontSize*20), engo.WindowHeight() - config.HoverInfoHeight}
+	}, 2)
 
 	// Messages set the texts of the text UI elements
 	engo.Mailbox.Listen(messages.HUDTextUpdateMessageType, h.HandleHUDTextUpdateMessage)
 	engo.Mailbox.Listen(messages.TimeSecondPassedMessageType, h.HandleTimeSecondPassedMessage)
+	engo.Mailbox.Listen("WindowResizeMessage", h.HandleWindowResizeMessage)
 }
 
 func (h *HUDTextSystem) HandleHUDTextUpdateMessage(m engo.Message) {
@@ -166,10 +186,27 @@ func (self *HUDTextSystem) HandleTimeSecondPassedMessage(m engo.Message) {
 	}
 }
 
+func (self *HUDTextSystem) HandleWindowResizeMessage(m engo.Message) {
+	msg, ok := m.(engo.WindowResizeMessage)
+	if !ok {
+		return
+	}
+
+	// Resize UI elements
+	for _, e := range self.entities {
+		e.Resize(msg.NewWidth, msg.NewHeight)
+	}
+}
+
 // Add adds an entity to the system
-func (self *HUDTextSystem) Add(name string, x float32, y float32, h int) {
-	position := &engo.Point{X: x, Y: y}
-	entity := &HUDTextEntity{BasicEntity: ecs.NewBasic(), Position: position, Name: name, Height: h}
+func (self *HUDTextSystem) Add(name string, getPosition func() *engo.Point, h int) {
+	entity := &HUDTextEntity{
+		BasicEntity: ecs.NewBasic(),
+		GetPosition: getPosition,
+		position:    getPosition(),
+		Name:        name,
+		Height:      h,
+	}
 	self.entities[entity.Name] = entity
 
 	self.InitText(name)
