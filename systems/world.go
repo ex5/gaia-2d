@@ -177,7 +177,7 @@ func (self *WorldTilesSystem) HandleControlMessage(m engo.Message) {
 			controlsSystem, ok := system.(*controls.ControlsSystem)
 			if ok {
 				x, y := util.ToGridPosition(controlsSystem.MouseTracker.MouseX, controlsSystem.MouseTracker.MouseY)
-				tile := NewTile(5, &engo.Point{x, y}, 4, &common.CollisionComponent{Main: 0, Group: 1})
+				tile := NewTile(6, &engo.Point{x, y}, 4, &common.CollisionComponent{Main: 0, Group: 1})
 				self.Add(tile)
 				break
 			}
