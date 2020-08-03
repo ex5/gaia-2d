@@ -190,10 +190,17 @@ func HandleLoadMessage(world *ecs.World, filepath string) {
 
 	// All systems that save anything should do it here
 	for _, system := range world.Systems() {
-		if sys, ok := system.(*systems.CreatureSpawningSystem); ok {
+		if sys, ok := system.(*systems.WorldTilesSystem); ok {
 			sys.LoadSave(saveFile)
 		}
-		if sys, ok := system.(*systems.WorldTilesSystem); ok {
+	}
+	for _, system := range world.Systems() {
+		if sys, ok := system.(*systems.PlantSpawningSystem); ok {
+			sys.LoadSave(saveFile)
+		}
+	}
+	for _, system := range world.Systems() {
+		if sys, ok := system.(*systems.CreatureSpawningSystem); ok {
 			sys.LoadSave(saveFile)
 		}
 	}
