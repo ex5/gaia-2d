@@ -28,8 +28,8 @@ type DebugSystem struct {
 func (self *DebugSystem) New(w *ecs.World) {
 	self.world = w
 
-	// TODO listen for events
 	engo.Mailbox.Listen(messages.DisplayDebugAABBMessageType, self.HandleDisplayDebugAABBMessage)
+	engo.Mailbox.Listen(messages.TimeSecondPassedMessageType, self.HandleTimeSecondPassedMessage)
 }
 
 func (self *DebugSystem) AddAABBer(aabber engo.AABBer, colorName string, removeAfter time.Duration) {
@@ -76,7 +76,9 @@ func (self *DebugSystem) Remove(e ecs.BasicEntity) {
 	}
 }
 
-func (self *DebugSystem) Update(dt float32) {
+func (self *DebugSystem) Update(dt float32) {}
+
+func (self *DebugSystem) update() {
 	for _, e := range self.entities {
 		if e.removeAfter > 0 {
 			now := time.Now()
@@ -113,4 +115,12 @@ func (self *DebugSystem) HandleDisplayDebugAABBMessage(m engo.Message) {
 	for _, a := range msg.Aabbers {
 		self.AddAABBer(a, msg.Color, msg.RemoveAfter)
 	}
+}
+
+func (self *DebugSystem) HandleTimeSecondPassedMessage(m engo.Message) {
+	_, ok := m.(messages.TimeSecondPassedMessage)
+	if !ok {
+		return
+	}
+	self.update()
 }

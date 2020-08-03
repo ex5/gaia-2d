@@ -67,6 +67,11 @@ func (self *ControlsSystem) Update(dt float32) {
 			CreatureID: 1,
 		})
 	}
+	if engo.Input.Button("TogglePause").JustPressed() {
+		engo.Mailbox.Dispatch(messages.ControlMessage{
+			Action:     "TogglePause",
+		})
+	}
 	if engo.Input.Button("QuickSave").JustPressed() {
 		engo.Mailbox.Dispatch(messages.SaveMessage{
 			Filepath: assets.WorkDir + "/quick.save",

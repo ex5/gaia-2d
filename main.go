@@ -58,6 +58,7 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	common.SetBackground(color.Black)
 
+	engo.Input.RegisterButton("TogglePause", engo.KeySpace)
 	engo.Input.RegisterButton("AddCreature", engo.KeyF1)
 	engo.Input.RegisterButton("AddObject", engo.KeyF2)
 	engo.Input.RegisterButton("NewWorld", engo.KeyF4)
