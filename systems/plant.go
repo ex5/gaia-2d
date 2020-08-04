@@ -46,17 +46,33 @@ func (self *PlantSpawningSystem) New(w *ecs.World) {
 
 	self.world = w
 	self.shader = shaders.WindShader
+	self.changeShader(2, 0.007)
+
+	engo.Mailbox.Listen(messages.NewPlantMessageType, self.HandleNewPlantMessage)
+	engo.Mailbox.Listen(messages.PlantHoveredMessageType, self.HandlePlantHoveredMessage)
+	engo.Mailbox.Listen(messages.TimeSecondPassedMessageType, self.HandleTimeSecondPassedMessage)
+	engo.Mailbox.Listen(messages.ControlMessageType, self.HandleControlMessage)
+}
+
+func (self *PlantSpawningSystem) changeShader(wave float32, speed float32) {
+	self.shader = shaders.WindShader
 	// TODO can be changed elsewhere
 	shader, ok := self.shader.(*shaders.BasicShader)
 	if !ok {
 		panic("not a shader we've expected")
 	}
-	shader.Wave.Y = 2
-	shader.Speed = 0.005
+	shader.Wave.Y = wave
+	shader.Speed = speed
+}
 
-	engo.Mailbox.Listen(messages.NewPlantMessageType, self.HandleNewPlantMessage)
-	engo.Mailbox.Listen(messages.PlantHoveredMessageType, self.HandlePlantHoveredMessage)
-	engo.Mailbox.Listen(messages.TimeSecondPassedMessageType, self.HandleTimeSecondPassedMessage)
+func (self *PlantSpawningSystem) getShader() (float32, float32) {
+	self.shader = shaders.WindShader
+	// TODO can be changed elsewhere
+	shader, ok := self.shader.(*shaders.BasicShader)
+	if !ok {
+		panic("not a shader we've expected")
+	}
+	return shader.Wave.Y, shader.Speed
 }
 
 // Update is ran every frame, with `dt` being the time
@@ -117,6 +133,23 @@ func (self *PlantSpawningSystem) HandleTimeSecondPassedMessage(m engo.Message) {
 	}
 	for _, e := range self.entities {
 		e.Update(msg.Time)
+	}
+}
+
+func (self *PlantSpawningSystem) HandleControlMessage(m engo.Message) {
+	msg, ok := m.(messages.ControlMessage)
+	if !ok {
+		return
+	}
+	log.Printf("[HUD] %+v", m)
+	switch msg.Action {
+	case "TogglePause":
+		_, speed := self.getShader()
+		if speed > 0 {
+			self.changeShader(0, 0)
+		} else {
+			self.changeShader(2, 0.007)
+		}
 	}
 }
 
