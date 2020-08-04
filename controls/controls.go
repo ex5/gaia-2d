@@ -69,7 +69,7 @@ func (self *ControlsSystem) Update(dt float32) {
 	}
 	if engo.Input.Button("TogglePause").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
-			Action:     "TogglePause",
+			Action: "TogglePause",
 		})
 	}
 	if engo.Input.Button("QuickSave").JustPressed() {
