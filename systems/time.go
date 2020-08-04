@@ -39,7 +39,7 @@ func (self *TimeSystem) Update(dt float32) {
 		// Paused
 		return
 	}
-	if self.dtFullSeconds * self.speed > 1 {
+	if self.dtFullSeconds*self.speed >= 1 {
 		self.dtFullSeconds = 0
 		self.Time.AddSecond()
 		engo.Mailbox.Dispatch(messages.TimeSecondPassedMessage{
@@ -57,7 +57,7 @@ func (self *TimeSystem) HandleControlMessage(m engo.Message) {
 	if !ok {
 		return
 	}
-	log.Printf("%+v", m)
+	log.Printf("[TimeSystem] %+v", m)
 	switch msg.Action {
 	case "TogglePause":
 		log.Print("TogglePause!", self.speed, self.previousSpeed)
