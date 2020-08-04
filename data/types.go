@@ -5,6 +5,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
+	"gogame/common_overrides"
 	"gogame/config"
 )
 
@@ -53,9 +54,9 @@ type Objects struct {
 }
 
 type Tile struct {
-	*ecs.BasicEntity           `json:"-"` // FIXME? marshalled into an empty object
-	*common.RenderComponent    `json:"-"` // FIXME cannot unmarshal .. color.Color
-	*common.AnimationComponent `json:"-"`
+	*ecs.BasicEntity                     `json:"-"` // FIXME? marshalled into an empty object
+	*common.RenderComponent              `json:"-"` // FIXME cannot unmarshal .. color.Color
+	*common_overrides.AnimationComponent `json:"-"`
 
 	SpaceComponent     *common.SpaceComponent
 	CollisionComponent *common.CollisionComponent
@@ -76,12 +77,12 @@ func (self *Tile) SurroundingAreaAABB(radius float32) engo.AABB {
 	var padding float32 = 1 // extra pixel in order to get corner positions into the rectangle
 	return engo.AABB{
 		Min: engo.Point{
-			X: self.SpaceComponent.Position.X - float32(config.SpriteWidth) * radius - padding,
-			Y: self.SpaceComponent.Position.Y - float32(config.SpriteHeight) * radius - padding,
+			X: self.SpaceComponent.Position.X - float32(config.SpriteWidth)*radius - padding,
+			Y: self.SpaceComponent.Position.Y - float32(config.SpriteHeight)*radius - padding,
 		},
 		Max: engo.Point{
-			X: self.SpaceComponent.Position.X + float32(config.SpriteWidth) * (radius + 1) + padding,
-			Y: self.SpaceComponent.Position.Y + float32(config.SpriteHeight) * (radius + 1) + padding,
+			X: self.SpaceComponent.Position.X + float32(config.SpriteWidth)*(radius+1) + padding,
+			Y: self.SpaceComponent.Position.Y + float32(config.SpriteHeight)*(radius+1) + padding,
 		},
 	}
 }

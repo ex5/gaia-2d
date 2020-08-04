@@ -1,11 +1,12 @@
 package systems
 
 import (
-	"fmt"
+	//"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
+	"gogame/common_overrides"
 	"gogame/config"
 	"gogame/controls"
 	"gogame/data"
@@ -58,10 +59,10 @@ func (self *WorldTilesSystem) Add(tile *data.Tile) {
 	if tile.AnimationComponent == nil {
 		if tile.Object.Animations != nil && len(tile.Object.Animations) > 1 {
 			log.Printf("Adding animations to %+v\n", tile)
-			animationC := common.NewAnimationComponent(tile.Object.Spritesheet.Drawables(), 0.25)
+			animationC := common_overrides.NewAnimationComponent(tile.Object.Spritesheet.Drawables(), 0.25)
 			tile.AnimationComponent = &animationC
 			tile.AnimationComponent.AddAnimations(tile.Object.Animations)
-			tile.AnimationComponent.AddDefaultAnimation(tile.Object.Animations[0])
+			//tile.AnimationComponent.AddDefaultAnimation(tile.Object.Animations[0])
 		}
 	}
 	self.tiles = append(self.tiles, tile)
@@ -73,7 +74,7 @@ func (self *WorldTilesSystem) Add(tile *data.Tile) {
 			sys.Add(tile.BasicEntity, tile.RenderComponent, tile.SpaceComponent)
 		case *common.CollisionSystem:
 			sys.Add(tile.BasicEntity, tile.CollisionComponent, tile.SpaceComponent)
-		case *common.AnimationSystem:
+		case *common_overrides.AnimationSystem:
 			if tile.AnimationComponent != nil {
 				sys.Add(tile.BasicEntity, tile.AnimationComponent, tile.RenderComponent)
 			}

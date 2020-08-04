@@ -7,6 +7,7 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
+	"gogame/common_overrides"
 	"gogame/controls"
 	"gogame/messages"
 	"gogame/save"
@@ -46,7 +47,6 @@ func (self *myScene) Setup(u engo.Updater) {
 	// Basic systems and controls
 	world.AddSystem(&common.RenderSystem{})
 	world.AddSystem(&common.CollisionSystem{Solids: 1})
-	world.AddSystem(&common.AnimationSystem{})
 	world.AddSystem(&common.MouseSystem{})
 	kbs := common.NewKeyboardScroller(
 		scrollSpeed,
@@ -65,6 +65,9 @@ func (self *myScene) Setup(u engo.Updater) {
 	engo.Input.RegisterButton("QuickSave", engo.KeyF5)
 	engo.Input.RegisterButton("QuickLoad", engo.KeyF6)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
+
+	// Custom animation that supports global playback speed and pausing
+	world.AddSystem(&common_overrides.AnimationSystem{})
 
 	// Visual debug
 	world.AddSystem(&systems.DebugSystem{})
