@@ -64,6 +64,34 @@ func (self *DebugSystem) AddAABB(aabb engo.AABB, colorName string, removeAfter t
 	self.entities = append(self.entities, entity)
 }
 
+func (self *DebugSystem) AddLines(points []engo.Point, colorName string, removeAfter time.Duration) {
+	entity := &DebugShape{
+		BasicEntity: ecs.NewBasic(),
+		removeAfter: removeAfter,
+		shownSince:  time.Now(),
+	}
+	entity.SpaceComponent = &common.SpaceComponent{
+		Position: engo.Point{0, 0},
+		Width:    1,
+		Height:   1,
+	}
+	entity.RenderComponent = &common.RenderComponent{
+		Drawable: common.ComplexTriangles{
+			BorderWidth: 1,
+			BorderColor: getColor(colorName),
+			Points:      points,
+		},
+	}
+	entity.RenderComponent.SetZIndex(10)
+	for _, system := range self.world.Systems() {
+		switch sys := system.(type) {
+		case *common.RenderSystem:
+			sys.Add(&entity.BasicEntity, entity.RenderComponent, entity.SpaceComponent)
+		}
+	}
+	self.entities = append(self.entities, entity)
+}
+
 func (self *DebugSystem) Remove(e ecs.BasicEntity) {
 	delete := -1
 	for index, entity := range self.entities {
@@ -114,6 +142,9 @@ func (self *DebugSystem) HandleDisplayDebugAABBMessage(m engo.Message) {
 	}
 	for _, a := range msg.Aabbers {
 		self.AddAABBer(a, msg.Color, msg.RemoveAfter)
+	}
+	if len(msg.Points) > 1 {
+		self.AddLines(msg.Points, msg.Color, msg.RemoveAfter)
 	}
 }
 

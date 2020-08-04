@@ -28,6 +28,7 @@ type SpacialResponseMessage struct {
 type DisplayDebugAABBMessage struct {
 	Aabbs       []engo.AABB
 	Aabbers     []engo.AABBer
+	Points      []engo.Point
 	RemoveAfter time.Duration
 	Color       string
 }
