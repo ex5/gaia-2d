@@ -93,5 +93,5 @@ func (self *Tile) CurrentPosition() string {
 }
 
 func (self *Tile) GetTextStatus() string {
-	return fmt.Sprintf("#%d\nAt %s", self.BasicEntity.ID(), self.CurrentPosition())
+	return fmt.Sprintf("#%d\n%s", self.BasicEntity.ID(), self.CurrentPosition())
 }
