@@ -3,6 +3,7 @@
         "id": 1,
         "object_id": 1,
         "name": "Young meadow grass",
+        "is_alive": true,
         "species": "P. trivialis",
         "grown_id": 2,
         "growth": 0,
@@ -14,6 +15,7 @@
         "id": 2,
         "object_id": 2,
         "name": "Meadow grass",
+        "is_alive": true,
         "species": "P. trivialis",
         "grown_id": 3,
         "growth": 100,
@@ -25,11 +27,36 @@
         "id": 3,
         "object_id": 3,
         "name": "Flowering meadow grass",
+        "is_alive": true,
         "species": "P. trivialis",
         "grown_id": null,
         "growth": 200,
         "growth_rate": -1,
         "growth_speed": 1,
         "max_growth": 250
+    },
+    {
+        "id": 4,
+        "object_id": 4,
+        "name": "Dead meadow grass",
+        "is_alive": false,
+        "species": "P. trivialis",
+        "grown_id": null,
+        "growth": 100,
+        "growth_rate": -1,
+        "growth_speed": 1,
+        "max_growth": 100
+    },
+    {
+        "id": 5,
+        "object_id": 5,
+        "name": "Dead meadow grass",
+        "is_alive": false,
+        "species": "P. trivialis",
+        "grown_id": null,
+        "growth": 200,
+        "growth_rate": -1,
+        "growth_speed": 1,
+        "max_growth": 200
     }
 ]}

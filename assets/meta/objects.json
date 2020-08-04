@@ -19,18 +19,60 @@
     },
     {
         "id": 4,
+        "sprite_id": 1708,
+        "spritesheet_id": 1,
+        "resource_id": 1
+    },
+    {
+        "id": 5,
+        "sprite_id": 1740,
+        "spritesheet_id": 1,
+        "resource_id": 1
+    },
+    {
+        "id": 6,
         "sprite_id": 1127,
         "spritesheet_id": 1
     },
     {
-        "id": 5,
+        "id": 7,
         "sprite_id": 0,
         "spritesheet_id": 2
     },
     {
-        "id": 6,
+        "id": 8,
         "sprite_id": 1664,
         "spritesheet_id": 1,
         "resource_id": 3
+    },
+    {
+        "id": 9,
+        "sprite_id": 1865,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 10,
+        "sprite_id": 1866,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 11,
+        "sprite_id": 1867,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 12,
+        "sprite_id": 1868,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 13,
+        "sprite_id": 1869,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 14,
+        "sprite_id": 1870,
+        "spritesheet_id": 1
     }
 ]}

@@ -109,7 +109,7 @@ func (self *WorldTilesSystem) New(world *ecs.World) {
 
 func (self *WorldTilesSystem) Generate() {
 	mapSizeX, mapSizeY := 50, 50
-	groundID := 4 // grassland, default ground
+	groundID := 6 // FIXME grassland, default ground
 	// ground doesn't collide with anything
 	collisionC := &common.CollisionComponent{Main: 0, Group: 0}
 	for i := 0; i < mapSizeX; i++ {
@@ -119,10 +119,30 @@ func (self *WorldTilesSystem) Generate() {
 			self.Add(tile)
 
 			// Add a random vegetation
-			if rand.Int()%3 == 0 {
+			if rand.Int()%5 == 0 {
 				engo.Mailbox.Dispatch(messages.NewPlantMessage{
 					Point:   position,
 					PlantID: 1,
+				})
+			} else if rand.Int()%6 == 0 {
+				engo.Mailbox.Dispatch(messages.NewPlantMessage{
+					Point:   position,
+					PlantID: 2,
+				})
+			} else if rand.Int()%7 == 0 {
+				engo.Mailbox.Dispatch(messages.NewPlantMessage{
+					Point:   position,
+					PlantID: 3,
+				})
+			} else if rand.Int()%8 == 0 {
+				engo.Mailbox.Dispatch(messages.NewPlantMessage{
+					Point:   position,
+					PlantID: 4,
+				})
+			} else if rand.Int()%9 == 0 {
+				engo.Mailbox.Dispatch(messages.NewPlantMessage{
+					Point:   position,
+					PlantID: 5,
 				})
 			}
 

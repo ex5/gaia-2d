@@ -21,10 +21,11 @@ type Activity uint8
 const (
 	Growing Activity = iota
 	Resting
+	Dead
 )
 
 func (a Activity) String() string {
-	return [...]string{"growing", "resting"}[a]
+	return [...]string{"growing", "resting", "dead"}[a]
 }
 
 type Plant struct {
@@ -123,6 +124,9 @@ func (self *Plant) GetTextStatus() string {
 }
 
 func (self *Plant) Update(currentTime *calendar.Time) {
+	if !self.IsAlive {
+		self.Activity = Dead
+	}
 	if self.IsFullyGrown() {
 		if self.GrownID != 0 {
 			self.Mature()

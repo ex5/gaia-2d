@@ -1,7 +1,7 @@
 {"creatures": [
     {
         "id": 1,
-        "object_id": 5,
+        "object_id": 7,
         "is_alive": true,
         "name": "Chicken",
         "species": "Gallus gallus domesticus",

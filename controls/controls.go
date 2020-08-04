@@ -92,7 +92,7 @@ func (self *ControlsSystem) Update(dt float32) {
 	if engo.Input.Button("AddObject").JustPressed() {
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action:   "add_object",
-			ObjectID: 5,
+			ObjectID: 8,
 		})
 	}
 
