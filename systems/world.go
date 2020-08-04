@@ -127,8 +127,14 @@ func (self *WorldTilesSystem) Generate() {
 
 		}
 	}
-	z_idx_max := 3.0
-	fmt.Printf("Max Z index of the terrain: %d\n", z_idx_max)
+	common.CameraBounds = engo.AABB{
+		Min: engo.Point{0, 0},
+		Max: engo.Point{
+			float32(mapSizeX * config.SpriteWidth),
+			float32(mapSizeY * config.SpriteHeight),
+		},
+	}
+	common.MaxZoom = 1.5
 }
 
 func (self *WorldTilesSystem) GetEntityByID(basicEntityID uint64) *data.Tile {
