@@ -36,6 +36,8 @@ func NewCreature(creatureID int, position *engo.Point) *data.Creature {
 }
 
 func (self *CreatureSpawningSystem) Add(entity *data.Creature) {
+	entity.IsAlive = true
+
 	self.entities = append(self.entities, entity)
 
 	// Add the entity to the various systems
