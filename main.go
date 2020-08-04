@@ -72,7 +72,7 @@ func (self *myScene) Setup(u engo.Updater) {
 	// Visual debug
 	world.AddSystem(&systems.DebugSystem{})
 
-	// Spacial (quadtree, pathfinding etc)
+	// Spacial (quadtree, pathfinding TODO etc)
 	world.AddSystem(&systems.SpacialSystem{})
 
 	// Controls
