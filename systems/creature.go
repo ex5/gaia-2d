@@ -116,12 +116,29 @@ func (self *CreatureSpawningSystem) HandleSpacialResponseMessage(m engo.Message)
 				log.Println(
 					"Found tile", tile, tile.SpaceComponent.Position,
 					"our position", entity.Tile.SpaceComponent.Position)
-				entity.MovementTarget = tile
-				engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
-					Aabbers:     []engo.AABBer{entity.MovementTarget},
-					RemoveAfter: 3 * time.Second,
-					Color:       "blue",
-				})
+				if entity.MovementTarget == nil {
+					entity.MovementTarget = tile
+
+					engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
+						Aabbers: []engo.AABBer{tile},
+						Points: []engo.Point{
+							tile.SpaceComponent.Position,
+							entity.Tile.SpaceComponent.Position,
+						},
+						RemoveAfter: 3 * time.Second,
+						Color:       "white",
+					})
+					engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
+						Aabbers:     []engo.AABBer{entity.MovementTarget},
+						RemoveAfter: 3 * time.Second,
+						Color:       "blue",
+					})
+				} else {
+					engo.Mailbox.Dispatch(messages.DisplayDebugAABBMessage{
+						Aabbers:     []engo.AABBer{entity.MovementTarget},
+						RemoveAfter: 3 * time.Second,
+					})
+				}
 				break
 			}
 		}

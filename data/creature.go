@@ -20,7 +20,6 @@ type Need struct {
 
 const (
 	Idle Activity = iota
-	LookingAround
 	Eating
 	Wandering
 	Sleeping
@@ -32,7 +31,7 @@ const (
 )
 
 func (a Activity) String() string {
-	return [...]string{"idle", "looking around", "eating", "wandering"}[a]
+	return [...]string{"idle", "eating", "wandering"}[a]
 }
 
 func (w Want) String() string {
@@ -120,6 +119,7 @@ func (self *Creature) Update(dt float32) {
 			self.BecomeIdle()
 			self.Target = self.MovementTarget
 			self.MovementTarget = nil
+			self.Tile.AnimationComponent.CurrentAnimation = nil
 		}
 	}
 }
@@ -139,16 +139,24 @@ func (self *Creature) UpdateActivity(currentTime *calendar.Time) {
 		self.AddNeedFor(Food)
 		log.Println(self, "needs food!", self.Needs)
 	}
-	if len(self.Needs) > 0 && self.Needs[0].Want == Food && self.Activity != LookingAround {
-		self.Activity = LookingAround
-		log.Println(self, "looks around", self.Needs)
-		engo.Mailbox.Dispatch(messages.SpacialRequestMessage{
-			Aabb:     self.SurroundingAreaAABB(2),
-			Filter:   self.FindFood,
-			EntityID: self.BasicEntity.ID(),
-			EventID:  self.LastEventID + 1,
-		})
-		self.LastEventID++
+	if len(self.Needs) > 0 && self.Needs[0].Want == Food && self.MovementTarget == nil && self.Activity != Eating {
+		if self.Target == nil {
+			engo.Mailbox.Dispatch(messages.SpacialRequestMessage{
+				Aabb:     self.SurroundingAreaAABB(2),
+				Filter:   self.FindFood,
+				EntityID: self.BasicEntity.ID(),
+				EventID:  self.LastEventID + 1,
+			})
+			self.LastEventID++
+		} else {
+			if self.FindFood(self.Target) {
+				log.Println(self, "got to the food!")
+				self.Activity = Eating
+				self.Tile.SelectAnimationByName("feed")
+			} else {
+				self.BecomeIdle()
+			}
+		}
 	}
 	// Handle movement
 	// TODO write the SpeedComponent and remove movement logic from here completely.
@@ -159,15 +167,7 @@ func (self *Creature) UpdateActivity(currentTime *calendar.Time) {
 			self.Tile.SpaceComponent.Position.Add(*v)
 			// TODO speed and smooth movement
 		} else {
-			if self.Activity == LookingAround {
-				if self.FindFood(self.MovementTarget) {
-					log.Println(self, "got to the food!")
-					self.Activity = Eating
-					self.Target = self.MovementTarget
-				} else {
-					self.BecomeIdle()
-				}
-			}
+			self.Target = self.MovementTarget
 			self.MovementTarget = nil
 		}
 	}
