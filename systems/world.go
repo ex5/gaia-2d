@@ -221,7 +221,9 @@ func (self *WorldTilesSystem) HandleTileRemoveMessage(m engo.Message) {
 	if !ok {
 		return
 	}
-	self.world.RemoveEntity(*msg.Entity)
+	if msg.Entity != nil {
+		self.world.RemoveEntity(*msg.Entity)
+	}
 }
 
 func (self *WorldTilesSystem) HandleTileReplaceMessage(m engo.Message) {
