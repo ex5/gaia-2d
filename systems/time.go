@@ -66,9 +66,9 @@ func (self *TimeSystem) HandleControlMessage(m engo.Message) {
 			self.speed = 0
 
 			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name:      "EventMessage",
-				GetText: func() []string {
-					return []string{"Paused"}
+				Name: "EventMessage",
+				GetText: func() string {
+					return "Paused"
 				},
 			})
 		} else {
@@ -78,8 +78,8 @@ func (self *TimeSystem) HandleControlMessage(m engo.Message) {
 			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
 				Name:      "EventMessage",
 				HideAfter: 3 * time.Second,
-				GetText: func() []string {
-					return []string{"Resumed"}
+				GetText: func() string {
+					return "Resumed"
 				},
 			})
 		}

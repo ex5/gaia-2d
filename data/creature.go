@@ -258,19 +258,15 @@ func (self *Creature) CurrentHealth() string {
 	)
 }
 
-func (self *Creature) CurrentPosition() string {
-	p := self.Tile.SpaceComponent.Position
-	return fmt.Sprintf("At (%d, %d)", int(p.X), int(p.Y))
-}
-
-func (self *Creature) GetTextStatus() []string {
-	return []string{
-		fmt.Sprintf("%s, %s", self.Name, self.Species),
-		fmt.Sprintf("Needs %s", self.CurrentNeeds()),
-		fmt.Sprintf("%s", self.CurrentHealth()),
-		fmt.Sprintf("%s", self.Activity),
-		fmt.Sprintf("%s", self.CurrentPosition()),
-	}
+func (self *Creature) GetTextStatus() string {
+	return fmt.Sprintf(
+		"%s, %s \nNeeds %s \n%s \n%s \n%s \n",
+		self.Name, self.Species,
+		self.CurrentNeeds(),
+		self.CurrentHealth(),
+		self.Activity,
+		self.CurrentPosition(),
+	)
 }
 
 func (self *Creature) TooFar(tile *Tile, dt float32) bool {

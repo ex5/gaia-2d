@@ -83,9 +83,9 @@ func (self *Time) AddSecond() {
 	}
 }
 
-func (self *Time) GetTextStatus() []string {
-	return []string{
-		fmt.Sprintf("Year %d, day %d of %s", self.Year, self.Day, self.Month),
-		fmt.Sprintf("%02d:%02d", self.Hour, self.Minute),
-	}
+func (self *Time) GetTextStatus() string {
+	return fmt.Sprintf(
+		"Year %d, day %d of %s\n%02d:%02d", self.Year, self.Day, self.Month,
+		self.Hour, self.Minute,
+	)
 }

@@ -87,11 +87,11 @@ func (self *Tile) SurroundingAreaAABB(radius float32) engo.AABB {
 	}
 }
 
-func (self *Tile) GetTextStatus() []string {
-	return []string{
-		fmt.Sprintf("#%d", self.BasicEntity.ID()),
-		fmt.Sprintf("%v", self.Object),
-		fmt.Sprintf("%v", self.AccessibleResource),
-		fmt.Sprintf("%v", self.Resource),
-	}
+func (self *Tile) CurrentPosition() string {
+	p := self.SpaceComponent.Position
+	return fmt.Sprintf("At (%d, %d)", int(p.X), int(p.Y))
+}
+
+func (self *Tile) GetTextStatus() string {
+	return fmt.Sprintf("#%d\nAt %s", self.BasicEntity.ID(), self.CurrentPosition())
 }

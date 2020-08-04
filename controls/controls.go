@@ -138,13 +138,8 @@ func (self *ControlsSystem) GetEntityByID(basicEntityID uint64) *controlEntity {
 	return nil
 }
 
-func (self *controlEntity) GetTextStatus() []string {
-	return []string{
-		fmt.Sprintf("#%d", self.BasicEntity.ID()),
-		fmt.Sprintf("%v", self),
-		"<ControlsSystem>",
-		"",
-	}
+func (self *controlEntity) GetTextStatus() string {
+	return fmt.Sprintf("#%d\n%v\n<ControlsSystem>", self.BasicEntity.ID(), self)
 }
 
 func (self *ControlsSystem) HandleInteractMessage(m engo.Message) {
@@ -156,11 +151,13 @@ func (self *ControlsSystem) HandleInteractMessage(m engo.Message) {
 	if msg.Action == "mouse_hover" && msg.BasicEntity != nil {
 		entity := self.GetEntityByID(msg.BasicEntity.ID())
 		log.Printf("%+v", entity)
-		if entity != nil {
-			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name:    "HoverInfo",
-				GetText: entity.GetTextStatus,
-			})
-		}
+		/*
+			if entity != nil {
+				engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+					Name:    "HoverInfo",
+					GetText: entity.GetTextStatus,
+				})
+			}
+		*/
 	}
 }

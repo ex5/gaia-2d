@@ -83,7 +83,7 @@ func (self *myScene) Setup(u engo.Updater) {
 
 	// HUD
 	systems.InitHUD(u)
-	world.AddSystem(&systems.HUDTextSystem{})
+	world.AddSystem(&systems.HUDSystem{})
 
 	// In-game time
 	world.AddSystem(&systems.TimeSystem{})
@@ -174,10 +174,8 @@ func HandleSaveMessage(world *ecs.World, filepath string) {
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
 		Name:      "EventMessage",
 		HideAfter: 3 * time.Second,
-		GetText: func() []string {
-			return []string{
-				fmt.Sprintf("Saved to %s", filepath),
-			}
+		GetText: func() string {
+			return fmt.Sprintf("Saved to %s", filepath)
 		},
 	})
 }
@@ -214,10 +212,8 @@ func HandleLoadMessage(world *ecs.World, filepath string) {
 	engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
 		Name:      "EventMessage",
 		HideAfter: 3 * time.Second,
-		GetText: func() []string {
-			return []string{
-				fmt.Sprintf("Loaded %s", filepath),
-			}
+		GetText: func() string {
+			return fmt.Sprintf("Loaded %s", filepath)
 		},
 	})
 }

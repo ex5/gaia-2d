@@ -114,13 +114,12 @@ func (self *Plant) CurrentPosition() string {
 	return fmt.Sprintf("At (%d, %d)", int(p.X), int(p.Y))
 }
 
-func (self *Plant) GetTextStatus() []string {
-	return []string{
-		fmt.Sprintf("%s, %s", self.Name, self.Species),
-		fmt.Sprintf("%s", self.CurrentGrowth()),
-		fmt.Sprintf("%s", self.Activity),
-		fmt.Sprintf("%s", self.CurrentPosition()),
-	}
+func (self *Plant) GetTextStatus() string {
+	return fmt.Sprintf("%s, %s\n%s\n%s\n%s", self.Name, self.Species,
+		self.CurrentGrowth(),
+		self.Activity,
+		self.CurrentPosition(),
+	)
 }
 
 func (self *Plant) Update(currentTime *calendar.Time) {
