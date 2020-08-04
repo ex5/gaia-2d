@@ -14,7 +14,6 @@ import (
 	"github.com/EngoEngine/engo/common"
 	"gogame/messages"
 	"log"
-	"time"
 )
 
 // AnimationComponent tracks animations of an entity it is part of.
@@ -167,28 +166,12 @@ func (self *AnimationSystem) HandleControlMessage(m engo.Message) {
 	log.Printf("[AnimationSystem] %+v", m)
 	switch msg.Action {
 	case "TogglePause":
-		log.Print("TogglePause!", self.speed, self.previousSpeed)
 		if self.speed > 0 {
 			self.previousSpeed = self.speed
 			self.speed = 0
-
-			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name: "EventMessage",
-				GetText: func() []string {
-					return []string{"Paused"}
-				},
-			})
 		} else {
 			self.speed = self.previousSpeed
 			self.previousSpeed = 0
-
-			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name:      "EventMessage",
-				HideAfter: 3 * time.Second,
-				GetText: func() []string {
-					return []string{"Resumed"}
-				},
-			})
 		}
 	}
 }
