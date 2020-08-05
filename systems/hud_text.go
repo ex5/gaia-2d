@@ -175,22 +175,22 @@ func (self *HUDSystem) New(w *ecs.World) {
 	// Initialise all known text elements of the UI
 	self.NewUIElement("HoverInfo", func() *engo.Point {
 		return &engo.Point{config.HUDMarginL, engo.WindowHeight() - config.HoverInfoHeight}
-	}, 8, &UIBackground{
+	}, &UIBackground{
 		Color:       color.RGBA{0, 0, 0, 150},
 		BorderColor: color.RGBA{50, 50, 50, 255},
 	})
 
 	self.NewUIElement("EventMessage", func() *engo.Point {
 		return &engo.Point{config.HUDMarginL, config.HUDMarginT}
-	}, 1, nil)
+	}, nil)
 
 	self.NewUIElement("CurrentTime", func() *engo.Point {
 		return &engo.Point{engo.WindowWidth() - float32(config.FontSize*20), engo.WindowHeight() - config.HoverInfoHeight}
-	}, 2, nil)
+	}, nil)
 
 	self.NewUIElement("Overlay", func() *engo.Point {
 		return &engo.Point{0, 0}
-	}, 0, &UIBackground{
+	}, &UIBackground{
 		GetDimensions: func() (float32, float32) {
 			return engo.WindowWidth(), engo.WindowHeight()
 		},
@@ -207,7 +207,7 @@ func (self *HUDSystem) New(w *ecs.World) {
 }
 
 // Add adds an entity to the system
-func (self *HUDSystem) NewUIElement(name string, getPosition func() *engo.Point, h int, bg *UIBackground) {
+func (self *HUDSystem) NewUIElement(name string, getPosition func() *engo.Point, bg *UIBackground) {
 	entity := &UIElement{
 		BasicEntity: ecs.NewBasic(),
 		GetPosition: getPosition,
