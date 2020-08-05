@@ -308,7 +308,16 @@ func (self *HUDSystem) HandleControlMessage(m engo.Message) {
 }
 
 // Update is called each frame to update the system.
-func (self *HUDSystem) Update(dt float32) {}
+func (self *HUDSystem) Update(dt float32) {
+       for _, e := range self.entities {
+	       if e.hideAfter > 0 && !e.hidden {
+		       now := time.Now()
+		       if now.Sub(e.shownSince) > e.hideAfter {
+			       e.SetHidden(true)
+		       }
+	       }
+       }
+}
 
 // Remove takes an enitty out of the system.
 func (self *HUDSystem) Remove(basic ecs.BasicEntity) {
