@@ -82,7 +82,6 @@ func (self *myScene) Setup(u engo.Updater) {
 	world.AddSystem(&systems.WorldTilesSystem{})
 
 	// HUD
-	systems.InitHUD(u)
 	world.AddSystem(&systems.HUDSystem{})
 
 	// In-game time
