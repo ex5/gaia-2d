@@ -29,7 +29,7 @@ var (
 type myScene struct{}
 
 // Type uniquely defines your game type
-func (*myScene) Type() string { return "gaea" }
+func (*myScene) Type() string { return "gaia" }
 
 // Preload is called before loading any assets from the disk,
 // to allow you to register / queue them
