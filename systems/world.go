@@ -47,9 +47,11 @@ func (self *WorldTilesSystem) Add(tile *data.Tile) {
 		tile.Resource = assets.GetResourceByID(tile.Object.ResourceID)
 	}
 	if tile.RenderComponent == nil {
+		scale := &engo.Point{1, 1}
+		scale = scale.MultiplyScalar(tile.Object.Scale)
 		tile.RenderComponent = &common.RenderComponent{
 			Drawable: tile.Object.Spritesheet.Cell(tile.Object.SpriteID),
-			Scale:    engo.Point{1, 1},
+			Scale:    *scale,
 		}
 		tile.RenderComponent.SetZIndex(tile.Layer)
 		tile.RenderComponent.SetShader(shaders.DefaultShader)

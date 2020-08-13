@@ -3,7 +3,7 @@
         "id": 1,
         "object_id": 7,
         "is_alive": true,
-        "name": "Chicken",
+        "name": "Chick",
         "species": "Gallus gallus domesticus",
         "movement_speed": 10.0,
         "eating_speed": 10.0,

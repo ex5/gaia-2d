@@ -101,7 +101,9 @@ func InitAssets() {
 	for _, o := range objects.Objects {
 		ObjectById[o.ID] = o
 		o.Spritesheet = spritesheets.Loaded[o.SpritesheetID]
-		o.Animations = SpritesheetById[o.SpritesheetID].Animations
+		spritesheet := SpritesheetById[o.SpritesheetID]
+		o.Animations = spritesheet.Animations
+		o.Scale = spritesheet.Scale
 	}
 	CreatureById = make(map[int]*data.Creature)
 	for _, c := range creatures.Creatures {

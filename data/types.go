@@ -12,6 +12,7 @@ type Spritesheet struct {
 	ID         int                 `json:"id"`
 	FilePath   string              `json:"filepath"`
 	Animations []*common.Animation `json:"animations"`
+	Scale      float32             `json:"scale"`
 }
 
 type Spritesheets struct {
@@ -46,6 +47,7 @@ type Object struct {
 	// Runtime only fields
 	Spritesheet *common.Spritesheet `json:"-"`
 	Animations  []*common.Animation `json:"-"`
+	Scale       float32             `json:"-"`
 }
 
 type Objects struct {

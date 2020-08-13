@@ -31,7 +31,7 @@
     },
     {
         "id": 6,
-        "sprite_id": 1127,
+        "sprite_id": 1148,
         "spritesheet_id": 1
     },
     {
@@ -73,6 +73,16 @@
     {
         "id": 14,
         "sprite_id": 1870,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 15,
+        "sprite_id": 1543,
+        "spritesheet_id": 1
+    },
+    {
+        "id": 16,
+        "sprite_id": 1575,
         "spritesheet_id": 1
     }
 ]}
