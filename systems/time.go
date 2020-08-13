@@ -6,7 +6,6 @@ import (
 	"gogame/calendar"
 	"gogame/messages"
 	"log"
-	"time"
 )
 
 type TimeSystem struct {
@@ -59,30 +58,6 @@ func (self *TimeSystem) HandleControlMessage(m engo.Message) {
 	}
 	log.Printf("[TimeSystem] %+v", m)
 	switch msg.Action {
-	case "TogglePause":
-		log.Print("TogglePause!", self.speed, self.previousSpeed)
-		if self.speed > 0 {
-			self.previousSpeed = self.speed
-			self.speed = 0
-
-			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name: "EventMessage",
-				GetText: func() string {
-					return "Paused"
-				},
-			})
-		} else {
-			self.speed = self.previousSpeed
-			self.previousSpeed = 0
-
-			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
-				Name:      "EventMessage",
-				HideAfter: 3 * time.Second,
-				GetText: func() string {
-					return "Resumed"
-				},
-			})
-		}
 	}
 }
 

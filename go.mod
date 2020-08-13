@@ -4,8 +4,8 @@ go 1.12
 
 require (
 	github.com/EngoEngine/ecs v1.0.4
-	github.com/EngoEngine/engo v1.0.5
-	github.com/EngoEngine/gl v1.0.10
+	github.com/EngoEngine/engo v1.0.6-0.20200813134554-7c650958219e
+	github.com/EngoEngine/gl v1.0.11
 	github.com/g3n/engine v0.1.1-0.20200214161420-db7282a2ba23
 	github.com/g3n/g3nd v0.1.0
 	github.com/go-gl/glfw v0.0.0-20200625191551-73d3c3675aa3 // indirect

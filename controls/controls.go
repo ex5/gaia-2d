@@ -8,6 +8,7 @@ import (
 	"gogame/assets"
 	"gogame/messages"
 	"log"
+	"time"
 )
 
 type controlEntity struct {
@@ -27,12 +28,14 @@ type ControlsSystem struct {
 	entities      []*controlEntity
 	hoveredEntity *controlEntity
 	*MouseTracker
+	paused bool
 }
 
 func (self *ControlsSystem) New(w *ecs.World) {
 	entity := ecs.NewBasic()
 	self.MouseTracker = &MouseTracker{&entity, &common.MouseComponent{Track: true}}
 	self.world = w
+	self.paused = false
 
 	for _, system := range w.Systems() {
 		switch sys := system.(type) {
@@ -68,9 +71,31 @@ func (self *ControlsSystem) Update(dt float32) {
 		})
 	}
 	if engo.Input.Button("TogglePause").JustPressed() {
+		if !self.paused {
+			engo.Time.Pause()
+			self.paused = true
+			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+				Name: "EventMessage",
+				GetText: func() string {
+					return "Paused"
+				},
+			})
+		} else {
+			engo.Time.Unpause()
+			self.paused = false
+
+			engo.Mailbox.Dispatch(messages.HUDTextUpdateMessage{
+				Name:      "EventMessage",
+				HideAfter: 3 * time.Second,
+				GetText: func() string {
+					return "Resumed"
+				},
+			})
+		}
 		engo.Mailbox.Dispatch(messages.ControlMessage{
 			Action: "TogglePause",
 		})
+
 	}
 	if engo.Input.Button("QuickSave").JustPressed() {
 		engo.Mailbox.Dispatch(messages.SaveMessage{

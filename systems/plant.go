@@ -46,7 +46,6 @@ func (self *PlantSpawningSystem) New(w *ecs.World) {
 
 	self.world = w
 	self.shader = shaders.WindShader
-	self.changeShader(2, 0.007)
 
 	engo.Mailbox.Listen(messages.NewPlantMessageType, self.HandleNewPlantMessage)
 	engo.Mailbox.Listen(messages.PlantHoveredMessageType, self.HandlePlantHoveredMessage)
@@ -143,13 +142,6 @@ func (self *PlantSpawningSystem) HandleControlMessage(m engo.Message) {
 	}
 	log.Printf("[HUD] %+v", m)
 	switch msg.Action {
-	case "TogglePause":
-		_, speed := self.getShader()
-		if speed > 0 {
-			self.changeShader(0, 0)
-		} else {
-			self.changeShader(2, 0.007)
-		}
 	}
 }
 

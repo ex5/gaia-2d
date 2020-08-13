@@ -7,7 +7,6 @@ import (
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
 	"gogame/assets"
-	"gogame/common_overrides"
 	"gogame/controls"
 	"gogame/messages"
 	"gogame/save"
@@ -36,6 +35,7 @@ func (*myScene) Type() string { return "gaia" }
 func (*myScene) Preload() {
 	assets.InitAssets()
 	common.AddShader(shaders.WindShader)
+	common.AddShader(shaders.DefaultShader)
 }
 
 // Setup is called before the main loop starts. It allows you
@@ -48,6 +48,7 @@ func (self *myScene) Setup(u engo.Updater) {
 	world.AddSystem(&common.RenderSystem{})
 	world.AddSystem(&common.CollisionSystem{Solids: 1})
 	world.AddSystem(&common.MouseSystem{})
+	world.AddSystem(&common.AnimationSystem{})
 	kbs := common.NewKeyboardScroller(
 		scrollSpeed,
 		engo.DefaultHorizontalAxis,
@@ -65,9 +66,6 @@ func (self *myScene) Setup(u engo.Updater) {
 	engo.Input.RegisterButton("QuickSave", engo.KeyF5)
 	engo.Input.RegisterButton("QuickLoad", engo.KeyF6)
 	engo.Input.RegisterButton("ExitToDesktop", engo.KeyEscape)
-
-	// Custom animation that supports global playback speed and pausing
-	world.AddSystem(&common_overrides.AnimationSystem{})
 
 	// Visual debug
 	world.AddSystem(&systems.DebugSystem{})

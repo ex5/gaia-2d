@@ -3,9 +3,9 @@ package shaders
 import (
 	"fmt"
 	"image/color"
+	"log"
 	"math"
 	"runtime"
-	"log"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
@@ -46,6 +46,7 @@ const (
 
 	uniform float Time;
 	uniform vec2 Wave;
+	uniform vec3 HSV;
 	vec2 Size = vec2(512, 256);
 
 	varying vec4 var_Color;
@@ -62,7 +63,8 @@ const (
 )
 
 var (
-	WindShader = &BasicShader{cameraEnabled: true, Wave: &engo.Point{48, 4}, Speed: 0.01}
+	WindShader    = &BasicShader{cameraEnabled: true, Wave: &engo.Point{32, 4}, Speed: 1}
+	DefaultShader = &BasicShader{cameraEnabled: true, Wave: &engo.Point{32, 0}, Speed: 0}
 )
 
 // FIXME copypasta because unexported
@@ -209,10 +211,7 @@ func (s *BasicShader) Pre() {
 	engo.Gl.UniformMatrix3fv(s.matrixProjView, false, s.projViewMatrix.Val[:])
 
 	// Handle wind parameters
-	s.time += s.Speed
-	if s.time > 1.0 {
-		s.time = 0
-	}
+	s.time += s.Speed * engo.Time.Delta()
 	engo.Gl.Uniform1f(s.inTime, s.time)
 	engo.Gl.Uniform2f(s.inWave, s.Wave.X, s.Wave.Y)
 

@@ -5,7 +5,6 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
 	"github.com/EngoEngine/engo/common"
-	"gogame/common_overrides"
 	"gogame/config"
 )
 
@@ -54,9 +53,9 @@ type Objects struct {
 }
 
 type Tile struct {
-	*ecs.BasicEntity                     `json:"-"` // FIXME? marshalled into an empty object
-	*common.RenderComponent              `json:"-"` // FIXME cannot unmarshal .. color.Color
-	*common_overrides.AnimationComponent `json:"-"`
+	*ecs.BasicEntity           `json:"-"` // FIXME? marshalled into an empty object
+	*common.RenderComponent    `json:"-"` // FIXME cannot unmarshal .. color.Color
+	*common.AnimationComponent `json:"-"`
 
 	SpaceComponent     *common.SpaceComponent
 	CollisionComponent *common.CollisionComponent
