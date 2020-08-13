@@ -117,6 +117,7 @@ type BasicShader struct {
 	matrixProjView *gl.UniformLocation
 	inTime         *gl.UniformLocation
 	inWave         *gl.UniformLocation
+	inHSV          *gl.UniformLocation
 
 	projectionMatrix *engo.Matrix
 	viewMatrix       *engo.Matrix
@@ -178,6 +179,7 @@ func (s *BasicShader) Setup(w *ecs.World) error {
 	s.matrixProjView = engo.Gl.GetUniformLocation(s.program, "matrixProjView")
 	s.inTime = engo.Gl.GetUniformLocation(s.program, "Time")
 	s.inWave = engo.Gl.GetUniformLocation(s.program, "Wave")
+	s.inHSV = engo.Gl.GetUniformLocation(s.program, "HSV")
 
 	s.projectionMatrix = engo.IdentityMatrix()
 	s.viewMatrix = engo.IdentityMatrix()
@@ -214,6 +216,7 @@ func (s *BasicShader) Pre() {
 	s.time += s.Speed * engo.Time.Delta()
 	engo.Gl.Uniform1f(s.inTime, s.time)
 	engo.Gl.Uniform2f(s.inWave, s.Wave.X, s.Wave.Y)
+	engo.Gl.Uniform3f(s.inHSV, 0, 0, 0)
 
 	// Since we are batching client side, we only have one VBO, so we can just bind it now and use it for the entire frame.
 	engo.Gl.BindBuffer(engo.Gl.ARRAY_BUFFER, s.vertexBuffer)
